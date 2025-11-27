@@ -439,6 +439,48 @@
         </v-card>
       </v-dialog>
 
+      <v-container v-if="publicacoesAniversariantes">
+        <v-row>
+          <v-col cols="12" md="6" v-for="aniversariante in publicacoesAniversariantes" :key="aniversariante.id">
+            <v-card class="mb-4">
+              <v-card-title class="d-flex justify-space-between align-center">
+                <span class="text-h5">
+                  {{ aniversariante.nome }}
+                </span>
+                <v-chip color="primary" size="small">
+                  {{ aniversariante.cargo }}
+                </v-chip>
+              </v-card-title>              
+              <v-card-text>
+                <div class="d-flex align-center mb-4">
+                  <v-avatar size="64" class="mr-4">
+                    <v-img :src="aniversariante.foto || 'https://via.placeholder.com/64x64?text=Sem+Foto'"></v-img>
+                  </v-avatar>
+                  <div>
+                    <p class="mb-1">
+                      <strong>Data de Nascimento:</strong> {{ formatarData(aniversariante.dataNascimento) }}
+                    </p>
+                    <p v-if="aniversariante.departamento" class="mb-0">
+                      <strong>Departamento:</strong> {{ aniversariante.departamento }}
+                    </p>
+                  </div>
+                </div>
+                <p v-if="aniversariante.mensagem">
+                  "{{ aniversariante.mensagem }}"
+                </p>
+              </v-card-text>
+              <v-card-actions>
+                <v-btn icon @click="editarAniversariante(aniversariante)">
+                  <v-icon>mdi-pencil</v-icon>
+                </v-btn>
+                <v-btn icon @click="excluirAniversariante(aniversariante)">
+                  <v-icon>mdi-delete</v-icon>
+                </v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-col>
+        </v-row>
+      </v-container>
     </v-container>
   </v-main>
 </template>
@@ -508,7 +550,7 @@ const opcoesStatus = ref([
 const pesquisa = ref('')
 const carregando = ref(false)
 const publicacoes = ref([])
-
+const publicacoesAniversariantes = ref([])
 
 publicacoes.value = [
   {
@@ -538,6 +580,27 @@ publicacoes.value = [
     visualizacoes: 0,
     imagem: 'https://via.placeholder.com/300x160'
   }
+]
+
+publicacoesAniversariantes.value = [
+    {
+        id: 1,
+        nome: 'Ana Silva',
+        cargo: 'Desenvolvedora Frontend',
+        dataNascimento: '1990-02-20',
+        departamento: 'Tecnologia',
+        foto: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRm7QDxdPUJrphv3FzWyVCw1uvO5jOMhTyNZQ&s',
+        mensagem: 'Feliz aniversário! Que seu dia seja repleto de alegria e sucesso.'
+    },
+    {
+        id: 2,
+        nome: 'Carlos Pereira',
+        cargo: 'Analista de Marketing',
+        dataNascimento: '1985-02-25',
+        departamento: 'Marketing',
+        foto: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRm7QDxdPUJrphv3FzWyVCw1uvO5jOMhTyNZQ&s',
+        mensagem: 'Parabéns! Que este novo ano de vida traga muitas conquistas.'
+    }
 ]
 
 
@@ -745,4 +808,8 @@ const formatarData = (data) => {
 .rounded-circle {
   border-radius: 50%;
 }
+
+
+
+
 </style>
