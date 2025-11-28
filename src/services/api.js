@@ -9,9 +9,7 @@ function createApiInstance(baseURL) {
   const instance = axios.create({
     baseURL,
     timeout: TIMEOUT_MS,
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: {},
   });
 
   instance.interceptors.request.use(
@@ -19,6 +17,9 @@ function createApiInstance(baseURL) {
       const token = localStorage.getItem('token');
       if (token) {
         config.headers.Authorization = `Bearer ${token.replace(/[\\"]/g, '')}`;
+      }
+      if (!(config.data instanceof FormData) && !config.headers['Content-Type']) {
+        config.headers['Content-Type'] = 'application/json';
       }
       return config;
     },
@@ -28,9 +29,6 @@ function createApiInstance(baseURL) {
   instance.interceptors.response.use(
     (response) => response,
     (error) => {
-      if (error.response?.data?.message) {
-        console.warn(error.response.data.message); 
-      }
       return Promise.reject(error);
     }
   );
