@@ -16,7 +16,7 @@
             color="primary" 
             outlined
             class="mb-2"
-            @click="$router.push('/Blog-para-voce')"
+            @click="$router.push('/')"
           >
             <v-icon left>mdi-arrow-left</v-icon>
             Voltar ao Blog
@@ -72,7 +72,6 @@
 
       <v-row>
         <v-col cols="12">
-          <v-card>
             <v-card-text>
               <div v-if="carregando" class="text-center py-8">
                 <v-progress-circular indeterminate color="primary"></v-progress-circular>
@@ -98,19 +97,13 @@
                   md="6" 
                   lg="4"
                 >
-                  <v-card class="elevation-1 h-100" hover>
+                  <v-card class="elevation-5 h-100" hover>
                     <v-img
                       height="160"
                       :src="publicacao.imagem || 'https://via.placeholder.com/300x160?text=Sem+Imagem'"
                       class="align-end"
                     >
-                      <v-chip 
-                        small 
-                        :color="publicacao.status === 'publicado' ? 'green' : 'orange'"
-                        class="ma-2"
-                      >
-                        {{ publicacao.status === 'publicado' ? 'Publicado' : 'Rascunho' }}
-                      </v-chip>
+                      
                     </v-img>
                     
                     <v-card-title class="text-subtitle-2 font-weight-bold">
@@ -122,7 +115,7 @@
                         <span>{{ formatarData(publicacao.dataCriacao) }}</span>
                       </div>
                       <p class="text-body-2 line-clamp-2">
-                        {{ publicacao.resumo }}
+                        {{ publicacao.descricao }}
                       </p>
                     </v-card-text>
                     
@@ -145,20 +138,11 @@
                         <v-icon small left>mdi-delete</v-icon>
                         Excluir
                       </v-btn>
-                      <v-spacer></v-spacer>
-                      <v-icon 
-                        v-if="publicacao.status === 'publicado'"
-                        small 
-                        color="green"
-                      >
-                        mdi-check-circle
-                      </v-icon>
                     </v-card-actions>
                   </v-card>
                 </v-col>
               </v-row>
             </v-card-text>
-          </v-card>
         </v-col>
       </v-row>
 
@@ -486,8 +470,10 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch , onBeforeMount } from 'vue'
 import { useRouter } from 'vue-router'
+
+import { carregarPosts } from '../services/blogServices'
 
 const roteador = useRouter()
 
@@ -552,35 +538,6 @@ const carregando = ref(false)
 const publicacoes = ref([])
 const publicacoesAniversariantes = ref([])
 
-publicacoes.value = [
-  {
-    id: 1,
-    titulo: 'Como Melhorar a UX do seu Blog',
-    resumo: 'Dicas práticas para melhorar a experiência do usuário no seu blog...',
-    status: 'publicado',
-    dataCriacao: new Date('2024-01-15'),
-    visualizacoes: 342,
-    imagem: 'https://via.placeholder.com/300x160'
-  },
-  {
-    id: 2,
-    titulo: 'Introdução ao Vue.js',
-    resumo: 'Aprenda os conceitos básicos do Vue.js framework...',
-    status: 'rascunho',
-    dataCriacao: new Date('2024-01-10'),
-    visualizacoes: 0,
-    imagem: 'https://via.placeholder.com/300x160'
-  },
-  {
-    id: 3,
-    titulo: 'Introdução ao React.js',
-    resumo: 'Aprenda os conceitos básicos do React.js framework...',
-    status: 'rascunho',
-    dataCriacao: new Date('2024-01-10'),
-    visualizacoes: 0,
-    imagem: 'https://via.placeholder.com/300x160'
-  }
-]
 
 publicacoesAniversariantes.value = [
     {
@@ -778,6 +735,42 @@ const confirmarExclusao = () => {
 const formatarData = (data) => {
   return new Date(data).toLocaleDateString('pt-BR')
 }
+
+
+const carregarOsPosts = async () => {
+  try {
+    const response = await carregarPosts()
+    let dadosPublicacoes = []
+    
+    if (response.data && response.data.data && Array.isArray(response.data.data)) {
+      dadosPublicacoes = response.data.data
+    } else if (Array.isArray(response.data)) {
+      dadosPublicacoes = response.data
+    } else if (response.data && Array.isArray(response.data)) {
+      dadosPublicacoes = response.data
+    }
+
+    publicacoes.value = dadosPublicacoes.map(publicacao => ({
+      id: publicacao.id,
+      titulo: publicacao.titulo,
+      resumo: publicacao.descricao,
+      descricao: publicacao.descricao,
+      categoria: publicacao.categoria,
+      imagem: publicacao.imagem ? `http://localhost:3600/uploads/${publicacao.imagem}` : 'https://via.placeholder.com/300x160?text=Sem+Imagem',
+      dataCriacao: publicacao.dataPublicacao,
+      dataPublicacao: publicacao.dataPublicacao
+    }))
+  } catch (error) {
+    console.error('Erro ao carregar publicações:', error)
+    publicacoes.value = []
+  }
+}
+onBeforeMount(async () => {
+  carregando.value = true
+  await carregarOsPosts()
+  carregando.value = false
+  console.log('Publicações carregadas:', publicacoes.value)
+})
 </script>
 
 <style scoped>
@@ -788,17 +781,14 @@ const formatarData = (data) => {
   overflow: hidden;
 }
 
-.h-100 {
-  height: 100%;
-}
-
 .v-card:hover {
   transform: translateY(-2px);
   transition: transform 0.2s ease-in-out;
 }
 
 .primary--text {
-  color: #1976d2 !important;
+  color: #000000 !important;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.7);
 }
 
 .cursor-pointer {
@@ -808,8 +798,4 @@ const formatarData = (data) => {
 .rounded-circle {
   border-radius: 50%;
 }
-
-
-
-
 </style>

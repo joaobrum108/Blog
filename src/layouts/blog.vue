@@ -1,6 +1,6 @@
 <template>
-  <v-main class="d-flex justify-center w-100">
-    <v-container style="background-color:#f5f5f5;" max-width="1280" class="pt-6 pt-md-10">
+  <v-main style="background-color:#f5f5f5;" class="d-flex justify-center w-100">
+    <v-container  max-width="1280" class="pt-6 pt-md-10">
 
       <v-col class="text-left mb-8">
         <v-chip color="primary" class="mb-3" size="small">Blog Portal RedFox</v-chip>

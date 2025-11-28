@@ -4,7 +4,7 @@ import editBlog from './layouts/editBlog.vue';
 
 const routes = [
   {
-    path: '/Blog-para-voce',
+    path: '/',
     name: 'Blog',
     component: blog
   },
