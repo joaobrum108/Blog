@@ -37,6 +37,9 @@ function createApiInstance(baseURL) {
 }
 
 const carregarDados = createApiInstance(import.meta.env.VITE_API_POST);
-const buscarPostPorId = createApiInstance(import.meta.env.VITE_API_POST);
+const buscarPostPorId2 = createApiInstance(import.meta.env.VITE_API_POST);
+const enviarDados = createApiInstance(import.meta.env.VITE_API_POST);
+const excluirPublicacao = createApiInstance(import.meta.env.VITE_API_POST);
+const atualizarPublic = createApiInstance (import.meta.env.VITE_API_POST)
 
-export { carregarDados, buscarPostPorId };
+export { carregarDados, buscarPostPorId2 , enviarDados , excluirPublicacao , atualizarPublic };

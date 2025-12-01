@@ -48,7 +48,6 @@
           </v-card>
         </v-col>
 
-
         <v-dialog max-width="600" v-model="modalPost">
           <v-card>
             <v-card-title class="text-h6 font-weight-bold">
@@ -57,17 +56,11 @@
 
             <v-card-text>
               <v-form>
-
                 <v-text-field v-model="form.titulo" label="Título" required></v-text-field>
-
                 <v-textarea v-model="form.descricao" label="Descrição" rows="3" auto-grow></v-textarea>
-
                 <v-text-field v-model="form.categoria" label="Categoria" required></v-text-field>
-
                 <v-text-field v-model="form.tempoLeitura" label="Tempo de Leitura (minutos)" type="number"></v-text-field>
-
                 <v-text-field v-model="form.dataPublicacao" label="Data de Publicação" type="date"></v-text-field>
-
                 <v-text-field v-model="form.autor" label="Autor"></v-text-field>
               </v-form>
             </v-card-text>
@@ -83,7 +76,7 @@
           <v-card>
             <v-card-title>Upload PDF</v-card-title>
             <v-card-text>
-              <v-file-input label="Selecione o PDF" accept=".pdf"></v-file-input>
+              <v-file-input v-model="pdfFile" label="Selecione o PDF" accept=".pdf"></v-file-input>
             </v-card-text>
             <v-card-actions>
               <v-btn color="primary" @click="modalPdf = false">Fechar</v-btn>
@@ -91,17 +84,71 @@
           </v-card>
         </v-dialog>
 
-        <v-divider></v-divider>
+
+        <v-col 
+          v-for="noticia in noticias"
+          :key="noticia.id"
+          cols="12"
+          md="6"
+          lg="6"
+        >
+          <v-card 
+            class="card-noticia h-100 d-flex flex-column" 
+            elevation="2" 
+            hover
+          >
+            <v-card-text class="flex-grow-1">
+              <div class="card-header">
+                <v-chip class="chip" color="#db0e35" text-color="white">
+                  {{ noticia.categoria }}
+                </v-chip>
+                <span class="reading-time">🕒 {{ noticia.tempoLeitura }}</span>
+              </div>
+
+              <h3 class="titulo-noticia">
+                {{ noticia.titulo }}
+              </h3>
+
+              <div class="meta-info">
+                <span class="date">📅 {{ formarData(noticia.dataPublicacao) }}</span>
+                <span class="divider">•</span>
+                <span class="author">Por {{ noticia.autor }}</span>
+              </div>
+
+              <p class="descricao">
+                {{ noticia.descricao }}
+              </p>
+            </v-card-text>
+
+            <v-card-actions class="pt-0">
+              <v-btn
+                variant="outlined"
+                class="read-more-btn ml-2 mb-2"
+                @click="$router.push({ name: 'NoticiaDetalhe', params: { id: noticia.id } })"
+              >
+                Ler mais
+              </v-btn>
+              <v-btn @click="excluirPublic(noticia.id)" color="error">
+                <v-icon>mdi-delete</v-icon>
+              </v-btn>
+              <v-btn color="primary">
+                <v-icon>mdi-pencil</v-icon>
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-col>
       </v-row>
     </v-container>
   </v-main>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref , onMounted } from 'vue'
+import { enviarPost , carregarPosts , excluirPost } from '../services/blogServices'
 
 const modalPost = ref(false)
 const modalPdf = ref(false)
+const pdfFile = ref(null)
 
 const form = ref({
   titulo: '',
@@ -112,21 +159,132 @@ const form = ref({
   autor: ''
 })
 
-function salvarPost() {
-  console.log('Dados do formulário:', form.value)
-  modalPost.value = false
+const formValid = () => {
+  if (form.value){}
+}
+
+const salvarPost = async () => {
+  try {
+    await enviarPost(form.value)
+    modalPost.value = false 
+    console.log('Post enviado com sucesso!' , form.value)
+
+    const response = await carregarPosts()
+    noticias.value = response.data.data || response.data
+    
+    form.value = {
+      titulo: '',
+      descricao: '',
+      categoria: '',
+      tempoLeitura: '',
+      dataPublicacao: '',
+      autor: ''
+    }
+    
+  } catch (error) {
+    console.error('Erro ao enviar post:', error)
+  }
+}
+
+const noticias = ref([])
+
+onMounted(async () => {
+  try {
+    const response = await carregarPosts()
+    noticias.value = response.data.data || response.data
+  } catch (error) {
+    console.error("Erro ao carregar posts:", error)
+  }
+})
+
+const excluirPublic = async (id) => {
+ 
+  if (confirm('Tem certeza que deseja excluir este post?\nEsta ação não pode ser desfeita.')) {
+    try {
+      await excluirPost(id)
+      console.log('Post excluído com sucesso!')
+      
+
+      noticias.value = noticias.value.filter(noticia => noticia.id !== id)
+      
+    } catch (error) {
+      console.error('Erro ao excluir post:', error)
+      alert('Erro ao excluir post. Por favor, tente novamente.')
+    }
+  }
 }
 
 const criarPost = () => {
   modalPost.value = true
 }
+
 const editarPdf = () => {
   modalPdf.value = true
+}
+
+const formarData = (data) => {
+  if (!data) return ''
+  return new Date(data).toLocaleDateString('pt-BR')
 }
 </script>
 
 <style scoped>
-.subtitle {
+.card-noticia {
+  transition: transform 0.3s ease;
+}
+
+.card-noticia:hover {
+  transform: translateY(-5px);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.chip {
+  font-weight: bold;
+}
+
+.reading-time {
+  font-size: 0.875rem;
+  color: #666;
+}
+
+.titulo-noticia {
+  font-size: 1.25rem;
+  font-weight: bold;
+  margin-bottom: 0.75rem;
+  color: #333;
+}
+
+.meta-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  color: #666;
+}
+
+.divider {
+  color: #999;
+}
+
+.descricao {
   color: #555;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+}
+
+.read-more-btn {
+  border-color: #db0e35;
+  color: #db0e35;
+}
+
+.read-more-btn:hover {
+  background-color: rgba(219, 14, 53, 0.1);
 }
 </style>
