@@ -1,18 +1,25 @@
 import { createRouter , createWebHistory } from "vue-router";
-import blog from './layouts/blog.vue';
-import editBlog from './layouts/editBlog.vue';
 
+import UserBlog from './layouts/UserBlog.vue';
+import AdminBlog from './layouts/Admin.vue';
+import NoticiaDetalhe from './layouts/BlogDetails.vue';
 const routes = [
   {
     path: '/',
-    name: 'Blog',
-    component: blog
+    name: 'UserBlog',
+    component: UserBlog
   },
   {
-    path: '/edit-blog',
-    name: 'EditBlog',
-    component: editBlog
+    path: '/Admin/Blog',
+    name: 'Admin',
+    component: AdminBlog
   },
+   {
+    path: '/noticia/:id',
+    name: 'NoticiaDetalhe',
+    component: NoticiaDetalhe,
+    props: true
+  }
   
 ];
 

@@ -37,5 +37,6 @@ function createApiInstance(baseURL) {
 }
 
 const carregarDados = createApiInstance(import.meta.env.VITE_API_POST);
+const buscarPostPorId = createApiInstance(import.meta.env.VITE_API_POST);
 
-export { carregarDados };
+export { carregarDados, buscarPostPorId };

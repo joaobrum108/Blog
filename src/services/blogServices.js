@@ -6,4 +6,8 @@ export const carregarPosts = async () => {
 
 export const enviarPost = async (formData) => {
   return await carregarDados.post('/enviarDados', formData);
-};
+}; 
+
+export const buscarPostPorId = async (id) => {
+  return await carregarDados.get(`/buscarDados/${id}`);
+}
