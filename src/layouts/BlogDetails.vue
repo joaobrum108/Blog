@@ -111,7 +111,7 @@
                   class="font-weight-bold px-3"
                   label
                 >
-                  {{ noticia.categoria || 'Geral' }}
+                  {{ noticia.categoria || 'Todos' }}
                 </v-chip>
               </div>
 
@@ -126,7 +126,7 @@
               </p>
 
 
-              <div class="d-flex flex-wrap align-center gap-4 text-grey-darken-1 mb-6">
+              <v-container class="d-flex flex-wrap align-center  text-grey-darken-1 mb-6" style="gap: 2rem;">
                 <div v-if="noticia.autor" class="d-flex align-center">
                   <v-icon size="small" class="mr-2">mdi-account</v-icon>
                   <span class="text-body-1">{{ noticia.autor }}</span>
@@ -141,14 +141,14 @@
                   <v-icon size="small" class="mr-2">mdi-clock-outline</v-icon>
                   <span class="text-body-1">{{ noticia.tempoLeitura }}</span>
                 </div>
-              </div>
+              </v-container>
             </header>
 
             <section v-if="noticia.conteudo" class="mb-10">
-              <div class="text-body-1 text-md-h6 line-height-2 article-content text-grey-darken-3">
+              <v-container class="text-body-1 text-md-h6 line-height-2 article-content text-grey-darken-3">
 
                 <template v-if="Array.isArray(noticia.conteudo)">
-                  <div 
+                  <v-col 
                     v-for="(paragrafo, index) in noticia.conteudo" 
                     :key="index"
                     class="mb-6"
@@ -156,14 +156,14 @@
                     <p v-if="typeof paragrafo === 'string'">
                       {{ paragrafo }}
                     </p>
-                  </div>
+                  </v-col>
                 </template>
                 
 
                 <div v-else-if="noticia.conteudo" class="mb-6">
                   <p>{{ noticia.conteudo }}</p>
                 </div>
-              </div>
+              </v-container>
             </section>
 
             <section v-if="noticia.tags && noticia.tags.length" class="mb-8">
@@ -202,10 +202,9 @@
                   </v-btn>
                 </div>
                 
-                <div class="d-flex gap-2">
+                <div class="d-flex " style="gap: 2rem;">
                   <v-btn
                     variant="outlined"
-                    color="#db0e35"
                     @click="compartilhar"
                     prepend-icon="mdi-share-variant"
                     size="small"
