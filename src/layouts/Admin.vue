@@ -51,7 +51,7 @@
         <v-dialog max-width="600" v-model="modalPost">
           <v-card>
             <v-card-title class="text-h6 font-weight-bold">
-              Crie um novo post
+              {{ modoEdicao ? 'Editar Post' : 'Criar novo post' }}
             </v-card-title>
 
             <v-card-text>
@@ -66,8 +66,10 @@
             </v-card-text>
 
             <v-card-actions>
-              <v-btn color="primary" @click="salvarPost">Salvar</v-btn>
-              <v-btn color="secondary" @click="modalPost = false">Cancelar</v-btn>
+              <v-btn color="primary" @click="salvarPost">
+                {{ modoEdicao ? 'Atualizar' : 'Salvar' }}
+              </v-btn>
+              <v-btn color="secondary" @click="fecharModal">Cancelar</v-btn>
             </v-card-actions>
           </v-card>
         </v-dialog>
@@ -83,7 +85,6 @@
             </v-card-actions>
           </v-card>
         </v-dialog>
-
 
         <v-col 
           v-for="noticia in noticias"
@@ -131,7 +132,7 @@
               <v-btn @click="excluirPublic(noticia.id)" color="error">
                 <v-icon>mdi-delete</v-icon>
               </v-btn>
-              <v-btn color="primary">
+              <v-btn color="primary" @click="editarPost(noticia)">
                 <v-icon>mdi-pencil</v-icon>
               </v-btn>
             </v-card-actions>
@@ -143,12 +144,14 @@
 </template>
 
 <script setup>
-import { ref , onMounted } from 'vue'
-import { enviarPost , carregarPosts , excluirPost } from '../services/blogServices'
+import { ref, onMounted } from 'vue'
+import { enviarPost, carregarPosts, atualizarPost, excluirPost } from '../services/blogServices'
 
 const modalPost = ref(false)
 const modalPdf = ref(false)
 const pdfFile = ref(null)
+const modoEdicao = ref(false)
+const postIdEdicao = ref(null)
 
 const form = ref({
   titulo: '',
@@ -159,30 +162,39 @@ const form = ref({
   autor: ''
 })
 
-const formValid = () => {
-  if (form.value){}
+const limparForm = () => {
+  form.value = {
+    titulo: '',
+    descricao: '',
+    categoria: '',
+    tempoLeitura: '',
+    dataPublicacao: '',
+    autor: ''
+  }
 }
 
 const salvarPost = async () => {
   try {
-    await enviarPost(form.value)
-    modalPost.value = false 
-    console.log('Post enviado com sucesso!' , form.value)
+    if (modoEdicao.value) {
 
-    const response = await carregarPosts()
-    noticias.value = response.data.data || response.data
-    
-    form.value = {
-      titulo: '',
-      descricao: '',
-      categoria: '',
-      tempoLeitura: '',
-      dataPublicacao: '',
-      autor: ''
+      await atualizarPost(postIdEdicao.value, form.value)
+      console.log('Post atualizado com sucesso!', form.value)
+
+      noticias.value = noticias.value.map(noticia =>
+        noticia.id === postIdEdicao.value ? { ...noticia, ...form.value } : noticia
+      )
+    } else {
+      await enviarPost(form.value)
+      console.log('Post criado com sucesso!', form.value)
+
+      const response = await carregarPosts()
+      noticias.value = response.data.data || response.data
     }
     
+    fecharModal()
   } catch (error) {
-    console.error('Erro ao enviar post:', error)
+    console.error('Erro ao salvar post:', error)
+    alert('Erro ao salvar post. Por favor, tente novamente.')
   }
 }
 
@@ -198,15 +210,11 @@ onMounted(async () => {
 })
 
 const excluirPublic = async (id) => {
- 
   if (confirm('Tem certeza que deseja excluir este post?\nEsta ação não pode ser desfeita.')) {
     try {
       await excluirPost(id)
       console.log('Post excluído com sucesso!')
-      
-
       noticias.value = noticias.value.filter(noticia => noticia.id !== id)
-      
     } catch (error) {
       console.error('Erro ao excluir post:', error)
       alert('Erro ao excluir post. Por favor, tente novamente.')
@@ -214,8 +222,38 @@ const excluirPublic = async (id) => {
   }
 }
 
-const criarPost = () => {
+const editarPost = (noticia) => {
+
+  form.value = {
+    titulo: noticia.titulo,
+    descricao: noticia.descricao,
+    categoria: noticia.categoria,
+    tempoLeitura: noticia.tempoLeitura,
+    dataPublicacao: noticia.dataPublicacao,
+    autor: noticia.autor
+  }
+
+  postIdEdicao.value = noticia.id
+  
+  modoEdicao.value = true
+
   modalPost.value = true
+}
+
+const criarPost = () => {
+  limparForm()
+
+  modoEdicao.value = false
+  postIdEdicao.value = null
+
+  modalPost.value = true
+}
+
+const fecharModal = () => {
+  modalPost.value = false
+  limparForm()
+  modoEdicao.value = false
+  postIdEdicao.value = null
 }
 
 const editarPdf = () => {
