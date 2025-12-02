@@ -17,6 +17,6 @@ export const excluirPost = async (id) => {
   return await excluirPublicacao.delete(`/deletarDados/${id}`);
 }
 
-export const atualizarPost = async (id) => {
-  return await atualizarPublic.put(`/atualizarDados/${id}`)
+export const atualizarPost = async (id, formData) => {
+  return await atualizarPublic.put(`/atualizarDados/${id}`, formData);
 }

@@ -60,7 +60,6 @@
                 <v-textarea v-model="form.descricao" label="Descrição" rows="3" auto-grow></v-textarea>
                 <v-text-field v-model="form.categoria" label="Categoria" required></v-text-field>
                 <v-text-field v-model="form.tempoLeitura" label="Tempo de Leitura (minutos)" type="number"></v-text-field>
-                <v-text-field v-model="form.dataPublicacao" label="Data de Publicação" type="date"></v-text-field>
                 <v-text-field v-model="form.autor" label="Autor"></v-text-field>
               </v-form>
             </v-card-text>
@@ -158,7 +157,7 @@ const form = ref({
   descricao: '',
   categoria: '',
   tempoLeitura: '',
-  dataPublicacao: '',
+
   autor: ''
 })
 
@@ -168,7 +167,7 @@ const limparForm = () => {
     descricao: '',
     categoria: '',
     tempoLeitura: '',
-    dataPublicacao: '',
+
     autor: ''
   }
 }
@@ -229,7 +228,7 @@ const editarPost = (noticia) => {
     descricao: noticia.descricao,
     categoria: noticia.categoria,
     tempoLeitura: noticia.tempoLeitura,
-    dataPublicacao: noticia.dataPublicacao,
+
     autor: noticia.autor
   }
 
