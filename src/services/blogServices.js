@@ -1,5 +1,4 @@
-import { id } from 'vuetify/locale';
-import { carregarDados , buscarPostPorId2 , enviarDados , excluirPublicacao  , atualizarPublic} from '../services/api';
+import { carregarDados , buscarPostPorId2 , enviarDados , excluirPublicacao  , atualizarPublic, enviarCsv as enviarCsvInstance } from '../services/api';
 
 export const carregarPosts = async () => {
     return await carregarDados.get('/listarDados');
@@ -19,4 +18,12 @@ export const excluirPost = async (id) => {
 
 export const atualizarPost = async (id, formData) => {
   return await atualizarPublic.put(`/atualizarDados/${id}`, formData);
+}
+
+
+export const enviarCsv = async (file) => {
+  const formData = new FormData();
+
+  formData.append('planilha', file);
+  return await enviarCsvInstance.post('/upload', formData);
 }

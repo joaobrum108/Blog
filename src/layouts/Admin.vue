@@ -1,7 +1,31 @@
 <template>
   <v-main justify="center" style="background-color: #f5f5f5;">
+    <v-snackbar
+      v-model="snackbar.show"
+      :color="snackbar.color"
+      :timeout="snackbar.timeout"
+      :location="snackbar.location"
+      elevation="24"
+      multi-line
+    >
+      <div class="d-flex align-center">
+        <v-icon v-if="snackbar.icon" :icon="snackbar.icon" class="mr-2"></v-icon>
+        {{ snackbar.message }}
+      </div>
+      
+      <template v-slot:actions>
+        <v-btn
+          icon
+          variant="text"
+          @click="snackbar.show = false"
+        >
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+      </template>
+    </v-snackbar>
+
     <v-container max-width="1280">
-      <v-row class="mt-10" justify="center">
+      <v-row class="mt-10">
         <v-col cols="12">
           <h1 class="text-h3 font-weight-bold" style="color: #db0e35;">Admin Dashboard</h1>
           <p class="subtitle mt-2">
@@ -24,7 +48,13 @@
               </p>
             </v-card-text>
             <v-card-actions>
-              <v-btn color="primary" block class="text-none" prepend-icon="mdi-plus" @click="criarPost">
+              <v-btn 
+                color="primary" 
+                style="border: 1px solid #db0e35;" 
+                class="text-none" 
+                prepend-icon="mdi-plus" 
+                @click="criarPost"
+              >
                 Criar Post
               </v-btn>
             </v-card-actions>
@@ -34,15 +64,21 @@
         <v-col cols="12" md="6">
           <v-card elevation="4" class="pa-4" style="border-radius: 6px;">
             <v-card-title class="text-h5 d-flex align-center">
-              <v-icon color="primary" class="mr-2">mdi-file-pdf-box</v-icon>
-              Envie o PDF dos aniversariantes do mês
+              <v-icon color="primary" class="mr-2">mdi-file-excel-box</v-icon>
+              Envie a planilha dos aniversariantes do mês
             </v-card-title>
             <v-card-subtitle class="mb-2">
-              Aqui você pode fazer o upload do PDF dos aniversariantes.
+              Aqui você pode fazer o upload da planilha dos aniversariantes.
             </v-card-subtitle>
             <v-card-actions>
-              <v-btn color="primary" block class="text-none" prepend-icon="mdi-upload" @click="editarPdf">
-                Enviar PDF
+              <v-btn 
+                color="primary" 
+                style="border: 1px solid #db0e35;"  
+                class="text-none" 
+                prepend-icon="mdi-upload" 
+                @click="abrirPlanilha"
+              >
+                Enviar Planilha
               </v-btn>
             </v-card-actions>
           </v-card>
@@ -56,31 +92,87 @@
 
             <v-card-text>
               <v-form>
-                <v-text-field v-model="form.titulo" label="Título" required></v-text-field>
-                <v-textarea v-model="form.descricao" label="Descrição" rows="3" auto-grow></v-textarea>
-                <v-text-field v-model="form.categoria" label="Categoria" required></v-text-field>
-                <v-text-field v-model="form.tempoLeitura" label="Tempo de Leitura (minutos)" type="number"></v-text-field>
-                <v-text-field v-model="form.autor" label="Autor"></v-text-field>
+                <v-text-field 
+                  v-model="form.titulo" 
+                  label="Título" 
+                  required
+                  outlined
+                  dense
+                ></v-text-field>
+                <v-textarea 
+                  v-model="form.descricao" 
+                  label="Descrição" 
+                  rows="3" 
+                  auto-grow
+                  outlined
+                  dense
+                ></v-textarea>
+                <v-text-field 
+                  v-model="form.categoria" 
+                  label="Categoria" 
+                  required
+                  outlined
+                  dense
+                ></v-text-field>
+                <v-text-field 
+                  v-model="form.tempoLeitura" 
+                  label="Tempo de Leitura (minutos)" 
+                  type="number"
+                  outlined
+                  dense
+                ></v-text-field>
+                <v-text-field 
+                  v-model="form.autor" 
+                  label="Autor"
+                  outlined
+                  dense
+                ></v-text-field>
               </v-form>
             </v-card-text>
 
             <v-card-actions>
-              <v-btn color="primary" @click="salvarPost">
+              <v-btn 
+                color="primary" 
+                @click="salvarPost"
+                :loading="loadingSalvar"
+              >
                 {{ modoEdicao ? 'Atualizar' : 'Salvar' }}
               </v-btn>
-              <v-btn color="secondary" @click="fecharModal">Cancelar</v-btn>
+              <v-btn @click="fecharModal">Cancelar</v-btn>
             </v-card-actions>
           </v-card>
         </v-dialog>
 
-        <v-dialog max-width="500" v-model="modalPdf">
+        <v-dialog max-width="500" v-model="modalPlanilha">
           <v-card>
-            <v-card-title>Upload PDF</v-card-title>
+            <v-card-title>Upload Planilha</v-card-title>
             <v-card-text>
-              <v-file-input v-model="pdfFile" label="Selecione o PDF" accept=".pdf"></v-file-input>
+              <v-file-input 
+                v-model="planilhaFile" 
+                label="Selecione a planilha" 
+                accept=".xlsx,.xls,.csv"
+                outlined
+                dense
+              ></v-file-input>
+              <v-alert
+                v-if="planilhaFile"
+                type="info"
+                variant="tonal"
+                class="mt-2"
+              >
+                Arquivo selecionado: {{ planilhaFile.name }}
+              </v-alert>
             </v-card-text>
             <v-card-actions>
-              <v-btn color="primary" @click="modalPdf = false">Fechar</v-btn>
+              <v-btn 
+                color="primary" 
+                @click="enviarPlanilhas"
+                :loading="loadingPlanilha"
+                :disabled="!planilhaFile"
+              >
+                Enviar
+              </v-btn>
+              <v-btn @click="modalPlanilha = false">Cancelar</v-btn>
             </v-card-actions>
           </v-card>
         </v-dialog>
@@ -90,7 +182,6 @@
           :key="noticia.id"
           cols="12"
           md="6"
-          lg="6"
         >
           <v-card 
             class="card-noticia h-100 d-flex flex-column" 
@@ -102,7 +193,7 @@
                 <v-chip class="chip" color="#db0e35" text-color="white">
                   {{ noticia.categoria }}
                 </v-chip>
-                <span class="reading-time">🕒 {{ noticia.tempoLeitura }}</span>
+                <span class="reading-time">🕒 {{ noticia.tempoLeitura }} min</span>
               </div>
 
               <h3 class="titulo-noticia">
@@ -124,18 +215,37 @@
               <v-btn
                 variant="outlined"
                 class="read-more-btn ml-2 mb-2"
-                @click="$router.push({ name: 'NoticiaDetalhe', params: { id: noticia.id } })"
+                @click="abrirDetalhe(noticia.id)"
               >
                 Ler mais
               </v-btn>
-              <v-btn @click="excluirPublic(noticia.id)" color="error">
+              <v-btn 
+                @click="excluirPublic(noticia.id)" 
+                color="error"
+                :loading="loadingExclusao === noticia.id"
+                :disabled="loadingExclusao !== null"
+              >
                 <v-icon>mdi-delete</v-icon>
               </v-btn>
-              <v-btn color="primary" @click="editarPost(noticia)">
+              <v-btn 
+                color="primary" 
+                @click="editarPost(noticia)"
+                :disabled="loadingExclusao !== null"
+              >
                 <v-icon>mdi-pencil</v-icon>
               </v-btn>
             </v-card-actions>
           </v-card>
+        </v-col>
+
+        <v-col v-if="noticias.length === 0" cols="12">
+          <v-alert
+            type="info"
+            variant="tonal"
+            class="text-center"
+          >
+            Nenhum post encontrado. Clique em "Criar Post" para começar.
+          </v-alert>
         </v-col>
       </v-row>
     </v-container>
@@ -143,23 +253,46 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { enviarPost, carregarPosts, atualizarPost, excluirPost } from '../services/blogServices'
+import { ref, onMounted, reactive } from 'vue'
+import { useRouter } from 'vue-router'
+import { enviarPost, carregarPosts, atualizarPost, excluirPost , enviarCsv } from '../services/blogServices'
+
+const router = useRouter()
 
 const modalPost = ref(false)
-const modalPdf = ref(false)
-const pdfFile = ref(null)
+const modalPlanilha = ref(false)
+const planilhaFile = ref(null)
 const modoEdicao = ref(false)
 const postIdEdicao = ref(null)
+const loadingSalvar = ref(false)
+const loadingPlanilha = ref(false)
+const loadingExclusao = ref(null)
+const noticias = ref([])
+
+const snackbar = reactive({
+  show: false,
+  message: '',
+  color: 'success',
+  timeout: 3000,
+  location: 'top right',
+  icon: null
+})
 
 const form = ref({
   titulo: '',
   descricao: '',
   categoria: '',
   tempoLeitura: '',
-
   autor: ''
 })
+
+const showToast = (options) => {
+  snackbar.message = options.message || ''
+  snackbar.color = options.color || 'success'
+  snackbar.timeout = options.timeout || 3000
+  snackbar.icon = options.icon || null
+  snackbar.show = true
+}
 
 const limparForm = () => {
   form.value = {
@@ -167,86 +300,142 @@ const limparForm = () => {
     descricao: '',
     categoria: '',
     tempoLeitura: '',
-
     autor: ''
   }
 }
 
+const carregarNoticias = async () => {
+  try {
+    const response = await carregarPosts()
+    noticias.value = response.data.data || response.data
+    
+    showToast({
+      message: 'Posts carregados com sucesso!',
+      color: 'success',
+      timeout: 2000
+    })
+  } catch (error) {
+    console.error("Erro ao carregar posts:", error)
+    showToast({
+      message: 'Erro ao carregar posts.',
+      color: 'error',
+      timeout: 5000
+    })
+  }
+}
+
+onMounted(() => {
+  carregarNoticias()
+})
+
+
 const salvarPost = async () => {
+  if (!form.value.titulo || !form.value.categoria) {
+    showToast({
+      message: 'Preencha pelo menos o título e a categoria.',
+      color: 'warning',
+      timeout: 4000,
+      icon: 'mdi-alert'
+    })
+    return
+  }
+
+  loadingSalvar.value = true
+  
   try {
     if (modoEdicao.value) {
-
+  
       await atualizarPost(postIdEdicao.value, form.value)
-      console.log('Post atualizado com sucesso!', form.value)
 
       noticias.value = noticias.value.map(noticia =>
         noticia.id === postIdEdicao.value ? { ...noticia, ...form.value } : noticia
       )
+      
+      showToast({
+        message: 'Post atualizado com sucesso!',
+        color: 'success',
+        icon: 'mdi-check-circle'
+      })
     } else {
-      await enviarPost(form.value)
-      console.log('Post criado com sucesso!', form.value)
 
-      const response = await carregarPosts()
-      noticias.value = response.data.data || response.data
+      await enviarPost(form.value)
+
+      await carregarNoticias()
+      
+      showToast({
+        message: 'Post criado com sucesso!',
+        color: 'success',
+        icon: 'mdi-check-circle'
+      })
     }
     
     fecharModal()
   } catch (error) {
     console.error('Erro ao salvar post:', error)
-    alert('Erro ao salvar post. Por favor, tente novamente.')
+    showToast({
+      message: 'Erro ao salvar post. Por favor, tente novamente.',
+      color: 'error',
+      timeout: 5000,
+      icon: 'mdi-alert-circle'
+    })
+  } finally {
+    loadingSalvar.value = false
   }
 }
-
-const noticias = ref([])
-
-onMounted(async () => {
-  try {
-    const response = await carregarPosts()
-    noticias.value = response.data.data || response.data
-  } catch (error) {
-    console.error("Erro ao carregar posts:", error)
-  }
-})
 
 const excluirPublic = async (id) => {
-  if (confirm('Tem certeza que deseja excluir este post?\nEsta ação não pode ser desfeita.')) {
-    try {
-      await excluirPost(id)
-      console.log('Post excluído com sucesso!')
-      noticias.value = noticias.value.filter(noticia => noticia.id !== id)
-    } catch (error) {
-      console.error('Erro ao excluir post:', error)
-      alert('Erro ao excluir post. Por favor, tente novamente.')
-    }
+  if (!confirm('Tem certeza que deseja excluir este post?\nEsta ação não pode ser desfeita.')) {
+    return
+  }
+
+  loadingExclusao.value = id
+  
+  try {
+    await excluirPost(id)
+
+    noticias.value = noticias.value.filter(noticia => noticia.id !== id)
+    
+    showToast({
+      message: 'Post excluído com sucesso!',
+      color: 'success',
+      icon: 'mdi-check-circle'
+    })
+  } catch (error) {
+    console.error('Erro ao excluir post:', error)
+    showToast({
+      message: 'Erro ao excluir post. Por favor, tente novamente.',
+      color: 'error',
+      timeout: 5000,
+      icon: 'mdi-alert-circle'
+    })
+  } finally {
+    loadingExclusao.value = null
   }
 }
 
-const editarPost = (noticia) => {
 
+const editarPost = (noticia) => {
   form.value = {
     titulo: noticia.titulo,
     descricao: noticia.descricao,
     categoria: noticia.categoria,
     tempoLeitura: noticia.tempoLeitura,
-
     autor: noticia.autor
   }
 
   postIdEdicao.value = noticia.id
-  
   modoEdicao.value = true
-
   modalPost.value = true
 }
+
 
 const criarPost = () => {
   limparForm()
-
   modoEdicao.value = false
   postIdEdicao.value = null
-
   modalPost.value = true
 }
+
 
 const fecharModal = () => {
   modalPost.value = false
@@ -255,13 +444,59 @@ const fecharModal = () => {
   postIdEdicao.value = null
 }
 
-const editarPdf = () => {
-  modalPdf.value = true
+
+const abrirPlanilha = () => {
+  modalPlanilha.value = true
+}
+
+const enviarPlanilhas = async () => {
+  if (!planilhaFile.value) {
+    showToast({
+      message: 'Selecione uma planilha.',
+      color: 'warning',
+      timeout: 4000
+    })
+    return
+  }
+
+  loadingPlanilha.value = true
+  
+  try {
+
+    await enviarCsv(planilhaFile.value)
+    
+    showToast({
+      message: 'Planilha enviada com sucesso!',
+      color: 'success',
+      icon: 'mdi-check-circle'
+    })
+    
+    planilhaFile.value = null
+    modalPlanilha.value = false
+  } catch (error) {
+    showToast({
+      message: 'Erro ao enviar planilha. Tente novamente.',
+      color: 'error',
+      timeout: 5000,
+      icon: 'mdi-alert-circle'
+    })
+  } finally {
+    loadingPlanilha.value = false
+  }
+}
+
+
+const abrirDetalhe = (id) => {
+  router.push({ name: 'NoticiaDetalhe', params: { id } })
 }
 
 const formarData = (data) => {
-  if (!data) return ''
-  return new Date(data).toLocaleDateString('pt-BR')
+  if (!data) return 'Data não disponível'
+  return new Date(data).toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  })
 }
 </script>
 
