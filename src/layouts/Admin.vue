@@ -27,9 +27,9 @@
     <v-container max-width="1280">
       <v-row class="mt-10">
         <v-col cols="12">
-          <h1 class="text-h3 font-weight-bold" style="color: #db0e35;">Admin Dashboard</h1>
+          <h1 class="text-h3 font-weight-bold" style="color: #db0e35;"> Painel de Administração</h1>
           <p class="subtitle mt-2">
-            Welcome to the admin panel. Here you can manage users, view analytics, and configure settings.
+            Bem vindo ao seu painel de administração! Aqui você pode gerenciar as notícias, anúncios e postagens da empresa.
           </p>
         </v-col>
 
@@ -84,62 +84,124 @@
           </v-card>
         </v-col>
 
-        <v-dialog max-width="600" v-model="modalPost">
-          <v-card>
-            <v-card-title class="text-h6 font-weight-bold">
-              {{ modoEdicao ? 'Editar Post' : 'Criar novo post' }}
-            </v-card-title>
-
-            <v-card-text>
-              <v-form>
-                <v-text-field 
-                  v-model="form.titulo" 
-                  label="Título" 
-                  required
-                  outlined
-                  dense
-                ></v-text-field>
-                <v-textarea 
-                  v-model="form.descricao" 
-                  label="Descrição" 
-                  rows="3" 
-                  auto-grow
-                  outlined
-                  dense
-                ></v-textarea>
-                <v-text-field 
-                  v-model="form.categoria" 
-                  label="Categoria" 
-                  required
-                  outlined
-                  dense
-                ></v-text-field>
-                <v-text-field 
-                  v-model="form.tempoLeitura" 
-                  label="Tempo de Leitura (minutos)" 
-                  type="number"
-                  outlined
-                  dense
-                ></v-text-field>
-                <v-text-field 
-                  v-model="form.autor" 
-                  label="Autor"
-                  outlined
-                  dense
-                ></v-text-field>
-              </v-form>
-            </v-card-text>
-
-            <v-card-actions>
-              <v-btn 
-                color="primary" 
-                @click="salvarPost"
-                :loading="loadingSalvar"
+       <v-dialog persistent max-width="1280" v-model="modalPost">
+          <v-card style="padding: 20px;">
+            <v-card-actions class="d-flex justify-end">
+              <v-icon 
+                class="close-modal" 
+                size="large" 
+                @click="modalPost = false"
               >
-                {{ modoEdicao ? 'Atualizar' : 'Salvar' }}
-              </v-btn>
-              <v-btn @click="fecharModal">Cancelar</v-btn>
+              mdi-close-circle
+              </v-icon>
             </v-card-actions>
+
+            <v-row>
+              <v-col cols="12" md="6">
+                <v-img 
+                  :src="flyer" 
+                  alt="image" 
+                  class="rounded-lg"
+                  cover
+                  height="100%"
+                ></v-img>
+              </v-col>
+
+              <v-col cols="12" md="6" style="max-height:90vh;">
+                <v-card-title style="color: #bb1e26;" class="text-h6 font-weight-bold d-flex text-center align-center">
+                  <v-icon class="mr-2">
+                    {{ modoEdicao ? 'mdi-pencil' : 'mdi-plus' }}
+                  </v-icon>
+                  {{ modoEdicao ? 'Editar Post' : 'Criar novo post' }}
+                </v-card-title>
+                <v-card-text>
+                  <v-form>
+                    <v-text-field 
+                      variant="outlined"
+                      v-model="form.titulo" 
+                      label="Título" 
+                      required
+                      outlined
+                      dense
+                      color="error"
+                      hint="Digite um título "
+                    ></v-text-field>
+
+                    <br>
+
+                    <v-textarea 
+                      variant="outlined"
+                      v-model="form.descricao" 
+                      label="Descrição" 
+                      rows="3" 
+                      auto-grow
+                      outlined
+                      dense
+                      color="error"
+                      hint="Digite uma descrição"
+                    ></v-textarea>
+
+<br>
+
+                    <v-row>
+                      <v-col cols="12" md="6">
+                        <v-text-field 
+                          variant="outlined"
+                          v-model="form.categoria" 
+                          label="Categoria" 
+                          required
+                          outlined
+                          dense
+                          color="error"
+                          hint="Digite uma categoria"
+                        ></v-text-field>
+                      </v-col>
+                      <v-col cols="12" md="6">
+                        <v-text-field 
+                          variant="outlined"
+                          v-model="form.tempoLeitura" 
+                          label="Tempo de Leitura (minutos)" 
+                          type="number"
+                          outlined
+                          dense
+                          color="error"
+                          hint="Digite o tempo de leitura"
+                        ></v-text-field>
+                      </v-col>
+                    </v-row>
+
+                    <v-text-field 
+                      variant="outlined"
+                      v-model="form.autor" 
+                      label="Autor"
+                      outlined
+                      dense
+                      color="error"
+                    ></v-text-field>
+                  </v-form>
+                </v-card-text>
+
+                <v-card-actions>
+                  <v-btn 
+                    style="border: 1px solid #db0e35;"
+                    color="primary" 
+                    @click="salvarPost"
+                    :loading="loadingSalvar"
+                    :prepend-icon="modoEdicao ? 'mdi-content-save-edit' : 'mdi-content-save'"
+                  >
+                    {{ modoEdicao ? 'Atualizar' : 'Salvar' }}
+                  </v-btn>
+
+                  <v-btn 
+                    style="background-color: #bb1e26; color: #fff !important;"
+                    @click="fecharModal"
+                    prepend-icon="mdi-close"
+                  >
+                    Cancelar
+                  </v-btn>
+                </v-card-actions>
+              </v-col>
+            </v-row>
           </v-card>
         </v-dialog>
 
@@ -256,6 +318,7 @@
 import { ref, onMounted, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { enviarPost, carregarPosts, atualizarPost, excluirPost , enviarCsv } from '../services/blogServices'
+import flyer from "../assets/flyer.jpg"
 
 const router = useRouter()
 
@@ -330,9 +393,9 @@ onMounted(() => {
 
 
 const salvarPost = async () => {
-  if (!form.value.titulo || !form.value.categoria) {
+  if (!form.value.titulo || !form.value.categoria || !form.value.descricao || !form.value.tempoLeitura || !form.value.autor) {
     showToast({
-      message: 'Preencha pelo menos o título e a categoria.',
+      message: 'Preencha pelo todos os campos.',
       color: 'warning',
       timeout: 4000,
       icon: 'mdi-alert'
@@ -498,6 +561,9 @@ const formarData = (data) => {
     year: 'numeric'
   })
 }
+
+
+
 </script>
 
 <style scoped>

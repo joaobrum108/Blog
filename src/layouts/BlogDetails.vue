@@ -218,6 +218,7 @@
                     @click="voltar"
                     prepend-icon="mdi-arrow-left"
                     size="small"
+                    style="background-color: #bb1e26; color: #fff !important;"
                     class="d-none d-md-flex"
                   >
                     Voltar
