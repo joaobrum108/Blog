@@ -42,5 +42,6 @@ const enviarDados = createApiInstance(import.meta.env.VITE_API_POST);
 const excluirPublicacao = createApiInstance(import.meta.env.VITE_API_POST);
 const atualizarPublic = createApiInstance (import.meta.env.VITE_API_POST)
 const enviarCsv = createApiInstance(import.meta.env.VITE_API_POST);
+const enviarPDFs = createApiInstance(import.meta.env.VITE_API_POST);
 
-export { carregarDados, buscarPostPorId2 , enviarDados , excluirPublicacao , atualizarPublic , enviarCsv};
+export { carregarDados, buscarPostPorId2 , enviarDados , excluirPublicacao , atualizarPublic , enviarCsv , enviarPDFs};

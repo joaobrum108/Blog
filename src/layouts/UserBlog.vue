@@ -1,7 +1,7 @@
 <template>
   <v-main style="background-color: #f5f5f5;">
     <v-container max-width="1280">
-      <v-row class="mt-10" justify="center">
+      <v-row v-if="carregarPosts.length > 0" class="mt-10" justify="center">
         <v-col cols="12">
           <h1 class="text-h3 font-weight-bold">Últimas Notícias</h1>
           <br>
@@ -20,8 +20,11 @@
             </div>
 
         </v-col>
+        
       </v-row>
-
+        <v-col v-if="carregarPosts.length ===0" cols="12" class="text-center">
+          <p class="subtitle">Nenhuma notícia disponível no momento.</p>
+        </v-col>
       <v-row class="mt-6" justify="start" align="stretch">
         <v-col 
           v-for="(noticia, index) in noticiasFiltradas" 

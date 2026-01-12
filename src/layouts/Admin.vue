@@ -61,7 +61,7 @@
           </v-card>
         </v-col>
 
-        <v-col cols="12" md="6">
+        <v-col cols="12" md="6" v-if="planilha === false">
           <v-card elevation="4" class="pa-4" style="border-radius: 6px;">
             <v-card-title class="text-h5 d-flex align-center">
               <v-icon color="primary" class="mr-2">mdi-file-excel-box</v-icon>
@@ -84,7 +84,31 @@
           </v-card>
         </v-col>
 
-       <v-dialog persistent max-width="1280" v-model="modalPost">
+        <v-col cols="12" md="6">
+          <v-card elevation="4" class="pa-4" style="border-radius: 6px;">
+            <v-card-title class="text-h5 d-flex align-center">
+              <v-icon color="primary" class="mr-2">mdi-file-pdf-box</v-icon>
+              Envie o PDF dos aniversariantes do mês
+            </v-card-title>
+            <v-card-subtitle class="mb-2">
+              Aqui você pode fazer o upload do PDF dos aniversariantes
+            </v-card-subtitle>
+            <v-card-actions>
+              <v-btn 
+                color="primary" 
+                style="border: 1px solid #db0e35;"  
+                class="text-none" 
+                prepend-icon="mdi-upload" 
+                @click="abrirPDF"
+              >
+                Enviar PDF
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-col>
+
+        <!-- Modal para Criar/Editar Post -->
+        <v-dialog persistent max-width="1280" v-model="modalPost">
           <v-card style="padding: 20px;">
             <v-card-actions class="d-flex justify-end">
               <v-icon 
@@ -205,9 +229,13 @@
           </v-card>
         </v-dialog>
 
+        <!-- Modal para Upload de Planilha -->
         <v-dialog max-width="500" v-model="modalPlanilha">
           <v-card>
-            <v-card-title>Upload Planilha</v-card-title>
+            <v-card-title class="text-h6 d-flex align-center">
+              <v-icon class="mr-2" color="primary">mdi-file-excel-box</v-icon>
+              Upload de Planilha
+            </v-card-title>
             <v-card-text>
               <v-file-input 
                 v-model="planilhaFile" 
@@ -215,6 +243,7 @@
                 accept=".xlsx,.xls,.csv"
                 outlined
                 dense
+                prepend-icon="mdi-file"
               ></v-file-input>
               <v-alert
                 v-if="planilhaFile"
@@ -225,16 +254,67 @@
                 Arquivo selecionado: {{ planilhaFile.name }}
               </v-alert>
             </v-card-text>
-            <v-card-actions>
+            <v-card-actions class="pa-4">
               <v-btn 
                 color="primary" 
                 @click="enviarPlanilhas"
                 :loading="loadingPlanilha"
                 :disabled="!planilhaFile"
+                prepend-icon="mdi-upload"
               >
                 Enviar
               </v-btn>
-              <v-btn @click="modalPlanilha = false">Cancelar</v-btn>
+              <v-btn 
+                @click="modalPlanilha = false"
+                prepend-icon="mdi-close"
+              >
+                Cancelar
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+
+        <!-- Modal para Upload de PDF (Reutilizado do modal de Planilha) -->
+        <v-dialog max-width="500" v-model="modalPDF">
+          <v-card>
+            <v-card-title class="text-h6 d-flex align-center">
+              <v-icon class="mr-2" color="error">mdi-file-pdf-box</v-icon>
+              Upload de PDF
+            </v-card-title>
+            <v-card-text>
+              <v-file-input 
+                v-model="pdfFile" 
+                label="Selecione o PDF" 
+                accept=".pdf"
+                outlined
+                dense
+                prepend-icon="mdi-file-pdf"
+              ></v-file-input>
+              <v-alert
+                v-if="pdfFile"
+                type="info"
+                variant="tonal"
+                class="mt-2"
+              >
+                Arquivo selecionado: {{ pdfFile.name }}
+              </v-alert>
+            </v-card-text>
+            <v-card-actions class="pa-4">
+              <v-btn 
+                color="error" 
+                @click="enviarPDFs"
+                :loading="loadingPDF"
+                :disabled="!pdfFile"
+                prepend-icon="mdi-upload"
+              >
+                Enviar
+              </v-btn>
+              <v-btn 
+                @click="modalPDF = false"
+                prepend-icon="mdi-close"
+              >
+                Cancelar
+              </v-btn>
             </v-card-actions>
           </v-card>
         </v-dialog>
@@ -317,18 +397,21 @@
 <script setup>
 import { ref, onMounted, reactive } from 'vue'
 import { useRouter } from 'vue-router'
-import { enviarPost, carregarPosts, atualizarPost, excluirPost , enviarCsv } from '../services/blogServices'
+import { enviarPost, carregarPosts, atualizarPost, excluirPost, enviarCsv } from '../services/blogServices'
 import flyer from "../assets/flyer.jpg"
 
 const router = useRouter()
-
+const planilha = ref(null)
 const modalPost = ref(false)
 const modalPlanilha = ref(false)
+const modalPDF = ref(false)
 const planilhaFile = ref(null)
+const pdfFile = ref(null)
 const modoEdicao = ref(false)
 const postIdEdicao = ref(null)
 const loadingSalvar = ref(false)
 const loadingPlanilha = ref(false)
+const loadingPDF = ref(false)
 const loadingExclusao = ref(null)
 const noticias = ref([])
 
@@ -372,7 +455,7 @@ const carregarNoticias = async () => {
     const response = await carregarPosts()
     noticias.value = response.data.data || response.data
     
-    showToast({
+    showToast({ 
       message: 'Posts carregados com sucesso!',
       color: 'success',
       timeout: 2000
@@ -391,7 +474,6 @@ onMounted(() => {
   carregarNoticias()
 })
 
-
 const salvarPost = async () => {
   if (!form.value.titulo || !form.value.categoria || !form.value.descricao || !form.value.tempoLeitura || !form.value.autor) {
     showToast({
@@ -407,7 +489,6 @@ const salvarPost = async () => {
   
   try {
     if (modoEdicao.value) {
-  
       await atualizarPost(postIdEdicao.value, form.value)
 
       noticias.value = noticias.value.map(noticia =>
@@ -420,9 +501,7 @@ const salvarPost = async () => {
         icon: 'mdi-check-circle'
       })
     } else {
-
       await enviarPost(form.value)
-
       await carregarNoticias()
       
       showToast({
@@ -476,7 +555,6 @@ const excluirPublic = async (id) => {
   }
 }
 
-
 const editarPost = (noticia) => {
   form.value = {
     titulo: noticia.titulo,
@@ -491,14 +569,12 @@ const editarPost = (noticia) => {
   modalPost.value = true
 }
 
-
 const criarPost = () => {
   limparForm()
   modoEdicao.value = false
   postIdEdicao.value = null
   modalPost.value = true
 }
-
 
 const fecharModal = () => {
   modalPost.value = false
@@ -507,9 +583,12 @@ const fecharModal = () => {
   postIdEdicao.value = null
 }
 
-
 const abrirPlanilha = () => {
   modalPlanilha.value = true
+}
+
+const abrirPDF = () => {
+  modalPDF.value = true
 }
 
 const enviarPlanilhas = async () => {
@@ -525,7 +604,6 @@ const enviarPlanilhas = async () => {
   loadingPlanilha.value = true
   
   try {
-
     await enviarCsv(planilhaFile.value)
     
     showToast({
@@ -548,6 +626,43 @@ const enviarPlanilhas = async () => {
   }
 }
 
+const enviarPDFs = async () => {
+  if (!pdfFile.value) {
+    showToast({
+      message: 'Selecione um arquivo PDF.',
+      color: 'warning',
+      timeout: 4000
+    })
+    return
+  }
+
+  loadingPDF.value = true
+  
+  try {
+    await fetch("http://localhost:3600/api/enviarPDFs", {
+      method: "POST",
+      body: pdfFile.value
+    })
+    
+    showToast({
+      message: 'PDF enviado com sucesso!',
+      color: 'success',
+      icon: 'mdi-check-circle'
+    })
+    
+    pdfFile.value = null
+    modalPDF.value = false
+  } catch (error) {
+    showToast({
+      message: 'Erro ao enviar PDF. Tente novamente.',
+      color: 'error',
+      timeout: 5000,
+      icon: 'mdi-alert-circle'
+    })
+  } finally {
+    loadingPDF.value = false
+  }
+}
 
 const abrirDetalhe = (id) => {
   router.push({ name: 'NoticiaDetalhe', params: { id } })
@@ -561,9 +676,6 @@ const formarData = (data) => {
     year: 'numeric'
   })
 }
-
-
-
 </script>
 
 <style scoped>
