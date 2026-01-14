@@ -1,22 +1,22 @@
 <template>
-  <v-main justify="center" style="background-color: #f5f5f5;">
+  <v-main style="background-color: #fafafa;">
     <v-snackbar
       v-model="snackbar.show"
       :color="snackbar.color"
       :timeout="snackbar.timeout"
-      :location="snackbar.location"
-      elevation="24"
-      multi-line
+      location="top right"
+      elevation="8"
     >
       <div class="d-flex align-center">
         <v-icon v-if="snackbar.icon" :icon="snackbar.icon" class="mr-2"></v-icon>
-        {{ snackbar.message }}
+        <span>{{ snackbar.message }}</span>
       </div>
       
       <template v-slot:actions>
         <v-btn
           icon
           variant="text"
+          size="small"
           @click="snackbar.show = false"
         >
           <v-icon>mdi-close</v-icon>
@@ -24,372 +24,456 @@
       </template>
     </v-snackbar>
 
-    <v-container max-width="1280">
-      <v-row class="mt-10">
+    <v-container class="py-8" max-width="1280">
+      <v-row class="mb-8">
         <v-col cols="12">
-          <h1 class="text-h3 font-weight-bold" style="color: #db0e35;"> Painel de Administração</h1>
-          <p class="subtitle mt-2">
-            Bem vindo ao seu painel de administração! Aqui você pode gerenciar as notícias, anúncios e postagens da empresa.
+          <div class="d-flex align-center mb-2">
+            <v-icon color="primary" size="x-large" class="mr-3">mdi-view-dashboard</v-icon>
+            <h1 class="text-h4 font-weight-bold text-primary">Painel Administrativo</h1>
+          </div>
+          <p class="text-body-1 text-medium-emphasis">
+            Gerencie notícias e aniversariantes da empresa.
           </p>
         </v-col>
+      </v-row>
 
+      <v-row class="mb-8">
         <v-col cols="12" md="6">
-          <v-card elevation="4" class="pa-4" style="border-radius: 6px;">
-            <v-card-title class="text-h5 d-flex align-center">
-              <v-icon color="primary" class="mr-2">mdi-pencil</v-icon>
-              Crie um novo post
-            </v-card-title>
-            <v-card-subtitle class="mb-2">
-              Compartilhe atualizações, notícias ou anúncios com sua comunidade.
-            </v-card-subtitle>
-            <v-card-text>
-              <p class="text-body-2">
-                Clique no botão abaixo para começar a escrever seu post.
-              </p>
-            </v-card-text>
-            <v-card-actions>
+          <v-card 
+            class="action-card h-100"
+            variant="outlined"
+            @click="criarPost"
+            :ripple="true"
+          >
+            <v-card-item class="pa-6">
+              <div class="d-flex align-start mb-4">
+                <v-avatar color="primary" size="48" class="mr-4">
+                  <v-icon icon="mdi-plus" color="white"></v-icon>
+                </v-avatar>
+                <div>
+                  <v-card-title class="pa-0 mb-2 text-h6 font-weight-bold">
+                    Novo Post
+                  </v-card-title>
+                  <v-card-subtitle class="pa-0 text-body-2 text-medium-emphasis">
+                    Crie uma nova notícia ou anúncio
+                  </v-card-subtitle>
+                </div>
+              </div>
+              <v-card-text class="pa-0 text-body-2">
+                Compartilhe atualizações importantes com sua comunidade.
+              </v-card-text>
+            </v-card-item>
+            <v-divider></v-divider>
+            <v-card-actions class="pa-4">
               <v-btn 
                 color="primary" 
-                style="border: 1px solid #db0e35;" 
-                class="text-none" 
-                prepend-icon="mdi-plus" 
-                @click="criarPost"
+                variant="text"
+                class="text-none"
+                prepend-icon="mdi-pencil"
               >
-                Criar Post
-              </v-btn>
-            </v-card-actions>
-          </v-card>
-        </v-col>
-
-        <v-col cols="12" md="6" v-if="planilha === false">
-          <v-card elevation="4" class="pa-4" style="border-radius: 6px;">
-            <v-card-title class="text-h5 d-flex align-center">
-              <v-icon color="primary" class="mr-2">mdi-file-excel-box</v-icon>
-              Envie a planilha dos aniversariantes do mês
-            </v-card-title>
-            <v-card-subtitle class="mb-2">
-              Aqui você pode fazer o upload da planilha dos aniversariantes.
-            </v-card-subtitle>
-            <v-card-actions>
-              <v-btn 
-                color="primary" 
-                style="border: 1px solid #db0e35;"  
-                class="text-none" 
-                prepend-icon="mdi-upload" 
-                @click="abrirPlanilha"
-              >
-                Enviar Planilha
+                Criar agora
               </v-btn>
             </v-card-actions>
           </v-card>
         </v-col>
 
         <v-col cols="12" md="6">
-          <v-card elevation="4" class="pa-4" style="border-radius: 6px;">
-            <v-card-title class="text-h5 d-flex align-center">
-              <v-icon color="primary" class="mr-2">mdi-file-pdf-box</v-icon>
-              Envie o PDF dos aniversariantes do mês
-            </v-card-title>
-            <v-card-subtitle class="mb-2">
-              Aqui você pode fazer o upload do PDF dos aniversariantes
-            </v-card-subtitle>
-            <v-card-actions>
+          <v-card 
+            class="action-card h-100"
+            variant="outlined"
+            @click="abrirFormAniversariante"
+            :ripple="true"
+          >
+            <v-card-item class="pa-6">
+              <div class="d-flex align-start mb-4">
+                <v-avatar color="success" size="48" class="mr-4">
+                  <v-icon icon="mdi-cake-variant" color="white"></v-icon>
+                </v-avatar>
+                <div>
+                  <v-card-title class="pa-0 mb-2 text-h6 font-weight-bold">
+                    Aniversariante do Mês
+                  </v-card-title>
+                  <v-card-subtitle class="pa-0 text-body-2 text-medium-emphasis">
+                    Adicionar novo aniversariante
+                  </v-card-subtitle>
+                </div>
+              </div>
+              <v-card-text class="pa-0 text-body-2">
+                Preencha os dados do colaborador que está aniversariando.
+              </v-card-text>
+            </v-card-item>
+            <v-divider></v-divider>
+            <v-card-actions class="pa-4">
               <v-btn 
-                color="primary" 
-                style="border: 1px solid #db0e35;"  
-                class="text-none" 
-                prepend-icon="mdi-upload" 
-                @click="abrirPDF"
+                color="success" 
+                variant="text"
+                class="text-none"
+                prepend-icon="mdi-account-plus"
               >
-                Enviar PDF
+                Adicionar
               </v-btn>
             </v-card-actions>
           </v-card>
         </v-col>
+      </v-row>
 
-        <!-- Modal para Criar/Editar Post -->
-        <v-dialog persistent max-width="1280" v-model="modalPost">
-          <v-card style="padding: 20px;">
-            <v-card-actions class="d-flex justify-end">
-              <v-icon 
-                class="close-modal" 
-                size="large" 
-                @click="modalPost = false"
-              >
-              mdi-close-circle
-              </v-icon>
-            </v-card-actions>
+      <v-row class="mb-4">
+        <v-col cols="12">
+          <div class="d-flex align-center justify-space-between mb-6">
+            <h2 class="text-h5 font-weight-bold">Posts Recentes</h2>
+            <v-chip 
+              color="primary" 
+              variant="outlined"
+              size="small"
+            >
+              {{ noticias.length }} {{ noticias.length === 1 ? 'post' : 'posts' }}
+            </v-chip>
+          </div>
+        </v-col>
+      </v-row>
 
-            <v-row>
-              <v-col cols="12" md="6">
-                <v-img 
-                  :src="flyer" 
-                  alt="image" 
-                  class="rounded-lg"
-                  cover
-                  height="100%"
-                ></v-img>
-              </v-col>
-
-              <v-col cols="12" md="6" style="max-height:90vh;">
-                <v-card-title style="color: #bb1e26;" class="text-h6 font-weight-bold d-flex text-center align-center">
-                  <v-icon class="mr-2">
-                    {{ modoEdicao ? 'mdi-pencil' : 'mdi-plus' }}
-                  </v-icon>
-                  {{ modoEdicao ? 'Editar Post' : 'Criar novo post' }}
-                </v-card-title>
-                <v-card-text>
-                  <v-form>
-                    <v-text-field 
-                      variant="outlined"
-                      v-model="form.titulo" 
-                      label="Título" 
-                      required
-                      outlined
-                      dense
-                      color="error"
-                      hint="Digite um título "
-                    ></v-text-field>
-
-                    <br>
-
-                    <v-textarea 
-                      variant="outlined"
-                      v-model="form.descricao" 
-                      label="Descrição" 
-                      rows="3" 
-                      auto-grow
-                      outlined
-                      dense
-                      color="error"
-                      hint="Digite uma descrição"
-                    ></v-textarea>
-
-<br>
-
-                    <v-row>
-                      <v-col cols="12" md="6">
-                        <v-text-field 
-                          variant="outlined"
-                          v-model="form.categoria" 
-                          label="Categoria" 
-                          required
-                          outlined
-                          dense
-                          color="error"
-                          hint="Digite uma categoria"
-                        ></v-text-field>
-                      </v-col>
-                      <v-col cols="12" md="6">
-                        <v-text-field 
-                          variant="outlined"
-                          v-model="form.tempoLeitura" 
-                          label="Tempo de Leitura (minutos)" 
-                          type="number"
-                          outlined
-                          dense
-                          color="error"
-                          hint="Digite o tempo de leitura"
-                        ></v-text-field>
-                      </v-col>
-                    </v-row>
-
-                    <v-text-field 
-                      variant="outlined"
-                      v-model="form.autor" 
-                      label="Autor"
-                      outlined
-                      dense
-                      color="error"
-                    ></v-text-field>
-                  </v-form>
-                </v-card-text>
-
-                <v-card-actions>
-                  <v-btn 
-                    style="border: 1px solid #db0e35;"
-                    color="primary" 
-                    @click="salvarPost"
-                    :loading="loadingSalvar"
-                    :prepend-icon="modoEdicao ? 'mdi-content-save-edit' : 'mdi-content-save'"
-                  >
-                    {{ modoEdicao ? 'Atualizar' : 'Salvar' }}
-                  </v-btn>
-
-                  <v-btn 
-                    style="background-color: #bb1e26; color: #fff !important;"
-                    @click="fecharModal"
-                    prepend-icon="mdi-close"
-                  >
-                    Cancelar
-                  </v-btn>
-                </v-card-actions>
-              </v-col>
-            </v-row>
-          </v-card>
-        </v-dialog>
-
-        <!-- Modal para Upload de Planilha -->
-        <v-dialog max-width="500" v-model="modalPlanilha">
-          <v-card>
-            <v-card-title class="text-h6 d-flex align-center">
-              <v-icon class="mr-2" color="primary">mdi-file-excel-box</v-icon>
-              Upload de Planilha
-            </v-card-title>
-            <v-card-text>
-              <v-file-input 
-                v-model="planilhaFile" 
-                label="Selecione a planilha" 
-                accept=".xlsx,.xls,.csv"
-                outlined
-                dense
-                prepend-icon="mdi-file"
-              ></v-file-input>
-              <v-alert
-                v-if="planilhaFile"
-                type="info"
-                variant="tonal"
-                class="mt-2"
-              >
-                Arquivo selecionado: {{ planilhaFile.name }}
-              </v-alert>
-            </v-card-text>
-            <v-card-actions class="pa-4">
-              <v-btn 
-                color="primary" 
-                @click="enviarPlanilhas"
-                :loading="loadingPlanilha"
-                :disabled="!planilhaFile"
-                prepend-icon="mdi-upload"
-              >
-                Enviar
-              </v-btn>
-              <v-btn 
-                @click="modalPlanilha = false"
-                prepend-icon="mdi-close"
-              >
-                Cancelar
-              </v-btn>
-            </v-card-actions>
-          </v-card>
-        </v-dialog>
-
-        <!-- Modal para Upload de PDF (Reutilizado do modal de Planilha) -->
-        <v-dialog max-width="500" v-model="modalPDF">
-          <v-card>
-            <v-card-title class="text-h6 d-flex align-center">
-              <v-icon class="mr-2" color="error">mdi-file-pdf-box</v-icon>
-              Upload de PDF
-            </v-card-title>
-            <v-card-text>
-              <v-file-input 
-                v-model="pdfFile" 
-                label="Selecione o PDF" 
-                accept=".pdf"
-                outlined
-                dense
-                prepend-icon="mdi-file-pdf"
-              ></v-file-input>
-              <v-alert
-                v-if="pdfFile"
-                type="info"
-                variant="tonal"
-                class="mt-2"
-              >
-                Arquivo selecionado: {{ pdfFile.name }}
-              </v-alert>
-            </v-card-text>
-            <v-card-actions class="pa-4">
-              <v-btn 
-                color="error" 
-                @click="enviarPDFs"
-                :loading="loadingPDF"
-                :disabled="!pdfFile"
-                prepend-icon="mdi-upload"
-              >
-                Enviar
-              </v-btn>
-              <v-btn 
-                @click="modalPDF = false"
-                prepend-icon="mdi-close"
-              >
-                Cancelar
-              </v-btn>
-            </v-card-actions>
-          </v-card>
-        </v-dialog>
-
+      <v-row>
         <v-col 
           v-for="noticia in noticias"
           :key="noticia.id"
           cols="12"
           md="6"
+          lg="4"
         >
           <v-card 
-            class="card-noticia h-100 d-flex flex-column" 
-            elevation="2" 
-            hover
+            class="post-card h-100"
+            variant="outlined"
+            :loading="loadingExclusao === noticia.id"
           >
-            <v-card-text class="flex-grow-1">
-              <div class="card-header">
-                <v-chip class="chip" color="#db0e35" text-color="white">
+            <v-card-item class="pa-4 pb-2">
+              <div class="d-flex align-center justify-space-between mb-3">
+                <v-chip 
+                  size="small"
+                  :color="getCategoriaColor(noticia.categoria)"
+                  class="text-white font-weight-medium"
+                >
                   {{ noticia.categoria }}
                 </v-chip>
-                <span class="reading-time">🕒 {{ noticia.tempoLeitura }} min</span>
+                <span class="text-caption text-medium-emphasis">
+                  <v-icon size="small" class="mr-1">mdi-clock-outline</v-icon>
+                  {{ noticia.tempoLeitura }} min
+                </span>
               </div>
-
-              <h3 class="titulo-noticia">
+              
+              <v-card-title class="pa-0 mb-2 text-h6 line-clamp-2">
                 {{ noticia.titulo }}
-              </h3>
-
-              <div class="meta-info">
-                <span class="date">📅 {{ formarData(noticia.dataPublicacao) }}</span>
-                <span class="divider">•</span>
-                <span class="author">Por {{ noticia.autor }}</span>
+              </v-card-title>
+              
+              <div class="d-flex align-center text-caption text-medium-emphasis mb-3">
+                <v-icon size="small" class="mr-1">mdi-account</v-icon>
+                {{ noticia.autor }}
+                <v-divider vertical class="mx-2"></v-divider>
+                <v-icon size="small" class="mr-1">mdi-calendar</v-icon>
+                {{ formarData(noticia.dataPublicacao) }}
               </div>
-
-              <p class="descricao">
+              
+              <p class="text-body-2 text-medium-emphasis line-clamp-3 mb-0">
                 {{ noticia.descricao }}
               </p>
-            </v-card-text>
-
-            <v-card-actions class="pt-0">
+            </v-card-item>
+            
+            <v-card-actions class="pa-4 pt-2">
+              <v-spacer></v-spacer>
               <v-btn
-                variant="outlined"
-                class="read-more-btn ml-2 mb-2"
+                variant="text"
+                size="small"
+                color="primary"
                 @click="abrirDetalhe(noticia.id)"
+                class="text-none"
               >
                 Ler mais
               </v-btn>
-              <v-btn 
-                @click="excluirPublic(noticia.id)" 
-                color="error"
-                :loading="loadingExclusao === noticia.id"
-                :disabled="loadingExclusao !== null"
-              >
-                <v-icon>mdi-delete</v-icon>
-              </v-btn>
-              <v-btn 
-                color="primary" 
+              <v-btn
+                icon
+                size="small"
+                variant="text"
+                color="grey"
                 @click="editarPost(noticia)"
                 :disabled="loadingExclusao !== null"
               >
-                <v-icon>mdi-pencil</v-icon>
+                <v-icon>mdi-pencil-outline</v-icon>
+                <v-tooltip activator="parent" location="bottom">Editar</v-tooltip>
+              </v-btn>
+              <v-btn
+                icon
+                size="small"
+                variant="text"
+                color="error"
+                @click="excluirPublic(noticia.id)"
+                :disabled="loadingExclusao !== null"
+              >
+                <v-icon>mdi-delete-outline</v-icon>
+                <v-tooltip activator="parent" location="bottom">Excluir</v-tooltip>
               </v-btn>
             </v-card-actions>
           </v-card>
         </v-col>
 
         <v-col v-if="noticias.length === 0" cols="12">
-          <v-alert
-            type="info"
-            variant="tonal"
-            class="text-center"
+          <v-card
+            class="text-center py-8"
+            variant="outlined"
           >
-            Nenhum post encontrado. Clique em "Criar Post" para começar.
-          </v-alert>
+            <v-icon size="64" color="grey-lighten-1" class="mb-4">mdi-newspaper-variant-outline</v-icon>
+            <h3 class="text-h6 font-weight-medium mb-2">Nenhum post encontrado</h3>
+            <p class="text-body-2 text-medium-emphasis mb-4">
+              Comece criando seu primeiro post.
+            </p>
+            <v-btn
+              color="primary"
+              variant="outlined"
+              prepend-icon="mdi-plus"
+              @click="criarPost"
+            >
+              Criar primeiro post
+            </v-btn>
+          </v-card>
         </v-col>
       </v-row>
+
+      <v-dialog
+        v-model="modalPost"
+        max-width="800"
+        scrollable
+        persistent
+      >
+        <v-card>
+          <v-toolbar :color="modoEdicao ? 'warning' : 'primary'" density="compact">
+            <v-toolbar-title class="text-white">
+              <v-icon class="mr-2">{{ modoEdicao ? 'mdi-pencil' : 'mdi-plus' }}</v-icon>
+              {{ modoEdicao ? 'Editar Post' : 'Novo Post' }}
+            </v-toolbar-title>
+            <v-spacer></v-spacer>
+            <v-btn
+              icon
+              variant="text"
+              @click="fecharModal"
+              class="text-white"
+            >
+              <v-icon>mdi-close</v-icon>
+            </v-btn>
+          </v-toolbar>
+
+          <v-card-text class="pa-0">
+            <v-row no-gutters>
+              <v-col cols="12" md="5">
+                <div class="image-upload-area pa-6" @click="$refs.fileInput.click()">
+                  <v-img
+                    :src="flyer"
+                    alt="Imagem do post"
+                    class="rounded-lg mb-4"
+                    cover
+                    height="200"
+                  ></v-img>
+                  <p class="text-caption text-center text-medium-emphasis">
+                    Clique para alterar a imagem
+                  </p>
+                  <input
+                    ref="fileInput"
+                    type="file"
+                    accept="image/*"
+                    style="display: none"
+                    @change="handleImageUpload"
+                  />
+                </div>
+              </v-col>
+
+              <v-col cols="12" md="7">
+                <v-form @submit.prevent="salvarPost" class="pa-6">
+                  <v-text-field
+                    v-model="form.titulo"
+                    label="Título"
+                    variant="outlined"
+                    density="comfortable"
+                    :rules="[v => !!v || 'Título é obrigatório']"
+                    class="mb-4"
+                    autofocus
+                  ></v-text-field>
+
+                  <v-textarea
+                    v-model="form.descricao"
+                    label="Descrição"
+                    variant="outlined"
+                    density="comfortable"
+                    rows="3"
+                    auto-grow
+                    :rules="[v => !!v || 'Descrição é obrigatória']"
+                    class="mb-4"
+                  ></v-textarea>
+
+                  <v-row dense>
+                    <v-col cols="12" md="6">
+                      <v-text-field
+                        v-model="form.categoria"
+                        label="Categoria"
+                        variant="outlined"
+                        density="comfortable"
+                        :rules="[v => !!v || 'Categoria é obrigatória']"
+                      ></v-text-field>
+                    </v-col>
+                    <v-col cols="12" md="6">
+                      <v-text-field
+                        v-model="form.tempoLeitura"
+                        label="Tempo de leitura (min)"
+                        variant="outlined"
+                        density="comfortable"
+                        type="number"
+                        min="1"
+                        :rules="[v => !!v || 'Tempo é obrigatório']"
+                      ></v-text-field>
+                    </v-col>
+                  </v-row>
+
+                  <v-text-field
+                    v-model="form.autor"
+                    label="Autor"
+                    variant="outlined"
+                    density="comfortable"
+                    :rules="[v => !!v || 'Autor é obrigatório']"
+                    class="mb-6"
+                  ></v-text-field>
+
+                  <div class="d-flex justify-end gap-2">
+                    <v-btn
+                      variant="outlined"
+                      @click="fecharModal"
+                      class="text-none"
+                    >
+                      Cancelar
+                    </v-btn>
+                    <v-btn
+                      :color="modoEdicao ? 'warning' : 'primary'"
+                      type="submit"
+                      :loading="loadingSalvar"
+                      :prepend-icon="modoEdicao ? 'mdi-content-save-edit' : 'mdi-content-save'"
+                      class="text-none"
+                    >
+                      {{ modoEdicao ? 'Atualizar' : 'Salvar' }}
+                    </v-btn>
+                  </div>
+                </v-form>
+              </v-col>
+            </v-row>
+          </v-card-text>
+        </v-card>
+      </v-dialog>
+
+      <v-dialog
+        v-model="modalAniversariante"
+        max-width="500"
+        persistent
+      >
+        <v-card>
+          <v-toolbar color="success" density="compact">
+            <v-toolbar-title class="text-white">
+              <v-icon class="mr-2">mdi-cake-variant</v-icon>
+              Novo Aniversariante
+            </v-toolbar-title>
+            <v-spacer></v-spacer>
+            <v-btn
+              icon
+              variant="text"
+              @click="fecharModalAniversariante"
+              class="text-white"
+            >
+              <v-icon>mdi-close</v-icon>
+            </v-btn>
+          </v-toolbar>
+
+          <v-card-text class="pa-6">
+            <v-form @submit.prevent="salvarAniversariante" ref="formAniversariante">
+         
+              <v-text-field
+                v-model="formAniversariante.nome"
+                label="Nome do Colaborador"
+                variant="outlined"
+                density="comfortable"
+                :rules="[v => !!v || 'Nome é obrigatório']"
+                class="mb-4"
+                autofocus
+                prepend-inner-icon="mdi-account"
+              ></v-text-field>
+
+              <v-menu
+                v-model="menuDataAniversario"
+                :close-on-content-click="false"
+                transition="scale-transition"
+              >
+                <template v-slot:activator="{ props }">
+                  <v-text-field
+                    v-model="formAniversariante.dataAniversario"
+                    label="Data de Aniversário"
+                    variant="outlined"
+                    density="comfortable"
+                    readonly
+                    v-bind="props"
+                    :rules="[v => !!v || 'Data de aniversário é obrigatória']"
+                    prepend-inner-icon="mdi-calendar-heart"
+                    class="mb-4"
+                  ></v-text-field>
+                </template>
+                <v-date-picker
+                  v-model="formAniversariante.dataAniversario"
+                  @update:model-value="menuDataAniversario = false"
+                  locale="pt-BR"
+                ></v-date-picker>
+              </v-menu>
+
+              <v-textarea
+                v-model="formAniversariante.mensagem"
+                label="Mensagem de Parabéns"
+                variant="outlined"
+                density="comfortable"
+                rows="3"
+                auto-grow
+                :rules="[v => !!v || 'Mensagem é obrigatória']"
+
+                prepend-inner-icon="mdi-message-text"
+                class="mb-6"
+                hint="Esta mensagem será exibida para todos os colaboradores"
+              ></v-textarea>
+
+              <v-alert
+                type="info"
+                variant="tonal"
+                class="mb-6"
+                density="compact"
+              >
+                <template v-slot:prepend>
+                  <v-icon icon="mdi-lightbulb-on" size="small" class="mr-2"></v-icon>
+                </template>
+                <span class="text-caption">
+                  <strong>Exemplo:</strong> "Parabéns, [Nome]! Que seu dia seja repleto de alegrias e conquistas. Desejamos muito sucesso e felicidade!"
+                </span>
+              </v-alert>
+
+              <div class="d-flex justify-end gap-2">
+                <v-btn
+                  variant="outlined"
+                  @click="fecharModalAniversariante"
+                  class="text-none"
+                >
+                  Cancelar
+                </v-btn>
+                <v-btn
+                  color="success"
+                  type="submit"
+                  :loading="loadingAniversariante"
+                  prepend-icon="mdi-content-save"
+                  class="text-none"
+                >
+                  Salvar Aniversariante
+                </v-btn>
+              </div>
+            </v-form>
+          </v-card-text>
+        </v-card>
+      </v-dialog>
     </v-container>
   </v-main>
 </template>
@@ -397,30 +481,31 @@
 <script setup>
 import { ref, onMounted, reactive } from 'vue'
 import { useRouter } from 'vue-router'
-import { enviarPost, carregarPosts, atualizarPost, excluirPost, enviarCsv } from '../services/blogServices'
+import { enviarPost, carregarPosts, atualizarPost, excluirPost, enviarAniversariante } from '../services/blogServices'
 import flyer from "../assets/flyer.jpg"
 
 const router = useRouter()
-const planilha = ref(null)
 const modalPost = ref(false)
-const modalPlanilha = ref(false)
-const modalPDF = ref(false)
-const planilhaFile = ref(null)
-const pdfFile = ref(null)
+const modalAniversariante = ref(false)
 const modoEdicao = ref(false)
 const postIdEdicao = ref(null)
 const loadingSalvar = ref(false)
-const loadingPlanilha = ref(false)
-const loadingPDF = ref(false)
+const loadingAniversariante = ref(false)
 const loadingExclusao = ref(null)
 const noticias = ref([])
+
+const menuDataAniversario = ref(false)
+const formAniversariante = ref({
+  nome: '',
+  dataAniversario: '',
+  mensagem: ''
+})
 
 const snackbar = reactive({
   show: false,
   message: '',
   color: 'success',
-  timeout: 3000,
-  location: 'top right',
+  timeout: 4000,
   icon: null
 })
 
@@ -435,7 +520,7 @@ const form = ref({
 const showToast = (options) => {
   snackbar.message = options.message || ''
   snackbar.color = options.color || 'success'
-  snackbar.timeout = options.timeout || 3000
+  snackbar.timeout = options.timeout || 4000
   snackbar.icon = options.icon || null
   snackbar.show = true
 }
@@ -450,22 +535,23 @@ const limparForm = () => {
   }
 }
 
+const limparFormAniversariante = () => {
+  formAniversariante.value = {
+    nome: '',
+    dataAniversario: '',
+    mensagem: ''
+  }
+}
+
 const carregarNoticias = async () => {
   try {
     const response = await carregarPosts()
     noticias.value = response.data.data || response.data
-    
-    showToast({ 
-      message: 'Posts carregados com sucesso!',
-      color: 'success',
-      timeout: 2000
-    })
   } catch (error) {
     console.error("Erro ao carregar posts:", error)
     showToast({
       message: 'Erro ao carregar posts.',
-      color: 'error',
-      timeout: 5000
+      color: 'error'
     })
   }
 }
@@ -474,12 +560,22 @@ onMounted(() => {
   carregarNoticias()
 })
 
+const getCategoriaColor = (categoria) => {
+  const colors = {
+    'Notícia': '#db0e35',
+    'Anúncio': '#2196F3',
+    'Evento': '#4CAF50',
+    'Atualização': '#FF9800'
+  }
+  return colors[categoria] || '#757575'
+}
+
+
 const salvarPost = async () => {
   if (!form.value.titulo || !form.value.categoria || !form.value.descricao || !form.value.tempoLeitura || !form.value.autor) {
     showToast({
-      message: 'Preencha pelo todos os campos.',
+      message: 'Preencha todos os campos obrigatórios.',
       color: 'warning',
-      timeout: 4000,
       icon: 'mdi-alert'
     })
     return
@@ -490,15 +586,13 @@ const salvarPost = async () => {
   try {
     if (modoEdicao.value) {
       await atualizarPost(postIdEdicao.value, form.value)
-
       noticias.value = noticias.value.map(noticia =>
         noticia.id === postIdEdicao.value ? { ...noticia, ...form.value } : noticia
       )
       
       showToast({
         message: 'Post atualizado com sucesso!',
-        color: 'success',
-        icon: 'mdi-check-circle'
+        color: 'success'
       })
     } else {
       await enviarPost(form.value)
@@ -506,8 +600,7 @@ const salvarPost = async () => {
       
       showToast({
         message: 'Post criado com sucesso!',
-        color: 'success',
-        icon: 'mdi-check-circle'
+        color: 'success'
       })
     }
     
@@ -515,16 +608,115 @@ const salvarPost = async () => {
   } catch (error) {
     console.error('Erro ao salvar post:', error)
     showToast({
-      message: 'Erro ao salvar post. Por favor, tente novamente.',
-      color: 'error',
-      timeout: 5000,
-      icon: 'mdi-alert-circle'
+      message: 'Erro ao salvar post. Tente novamente.',
+      color: 'error'
     })
   } finally {
     loadingSalvar.value = false
   }
 }
 
+const abrirFormAniversariante = () => {
+  limparFormAniversariante()
+  modalAniversariante.value = true
+}
+
+const fecharModalAniversariante = () => {
+  modalAniversariante.value = false
+  limparFormAniversariante()
+}
+
+const salvarAniversariante = async () => {
+  const { nome, dataAniversario, mensagem } = formAniversariante.value
+  
+  if (!nome || !dataAniversario || !mensagem) {
+    showToast({
+      message: 'Preencha todos os campos obrigatórios.',
+      color: 'warning',
+      icon: 'mdi-alert'
+    })
+    return
+  }
+
+  if (nome.trim() === '' || mensagem.trim() === '') {
+    showToast({
+      message: 'Preencha todos os campos corretamente.',
+      color: 'warning',
+      icon: 'mdi-alert'
+    })
+    return
+  }
+
+  loadingAniversariante.value = true
+  
+  try {
+    let dataFormatada;
+    
+    if (typeof dataAniversario === 'string') {
+      dataFormatada = dataAniversario;
+    } else if (dataAniversario instanceof Date) {
+      dataFormatada = dataAniversario.toISOString().split('T')[0];
+    } else {
+
+      const data = new Date(dataAniversario);
+      if (isNaN(data.getTime())) {
+        throw new Error('Data inválida');
+      }
+      dataFormatada = data.toISOString().split('T')[0];
+    }
+
+    console.log('Data formatada para envio:', dataFormatada); 
+    
+    const response = await enviarAniversariante({
+      nome: nome.trim(),
+      dataAniversario: dataFormatada,
+      mensagem: mensagem.trim()
+    })
+
+    const data = response.data;
+
+    if (data.status === 'error') {
+      showToast({
+        message: data.message || 'Erro ao salvar aniversariante. Tente novamente.',
+        color: 'error',
+        icon: 'mdi-alert-circle'
+      })
+      return
+    }
+
+    showToast({
+      message: data.message || 'Aniversariante salvo com sucesso!',
+      color: 'success',
+      icon: 'mdi-check-circle'
+    })
+    
+    fecharModalAniversariante()
+    
+  } catch (error) {
+    console.error('Erro ao salvar aniversariante:', error)
+    
+    let userMessage = 'Erro ao salvar aniversariante. Tente novamente.'
+    
+    if (error.message.includes('Network') || error.message.includes('Failed to fetch')) {
+      userMessage = 'Erro de conexão. Verifique sua internet e tente novamente.'
+    } else if (error.message.includes('401') || error.message.includes('403')) {
+      userMessage = 'Acesso não autorizado. Faça login novamente.'
+    } else if (error.message.includes('Data inválida')) {
+      userMessage = 'Data de aniversário inválida. Selecione uma data válida.'
+    } else {
+      userMessage = error.message
+    }
+    
+    showToast({
+      message: userMessage,
+      color: 'error',
+      icon: 'mdi-alert-circle',
+      timeout: 5000
+    })
+  } finally {
+    loadingAniversariante.value = false
+  }
+}
 const excluirPublic = async (id) => {
   if (!confirm('Tem certeza que deseja excluir este post?\nEsta ação não pode ser desfeita.')) {
     return
@@ -534,21 +726,17 @@ const excluirPublic = async (id) => {
   
   try {
     await excluirPost(id)
-
     noticias.value = noticias.value.filter(noticia => noticia.id !== id)
     
     showToast({
       message: 'Post excluído com sucesso!',
-      color: 'success',
-      icon: 'mdi-check-circle'
+      color: 'success'
     })
   } catch (error) {
     console.error('Erro ao excluir post:', error)
     showToast({
-      message: 'Erro ao excluir post. Por favor, tente novamente.',
-      color: 'error',
-      timeout: 5000,
-      icon: 'mdi-alert-circle'
+      message: 'Erro ao excluir post. Tente novamente.',
+      color: 'error'
     })
   } finally {
     loadingExclusao.value = null
@@ -583,85 +771,11 @@ const fecharModal = () => {
   postIdEdicao.value = null
 }
 
-const abrirPlanilha = () => {
-  modalPlanilha.value = true
-}
-
-const abrirPDF = () => {
-  modalPDF.value = true
-}
-
-const enviarPlanilhas = async () => {
-  if (!planilhaFile.value) {
-    showToast({
-      message: 'Selecione uma planilha.',
-      color: 'warning',
-      timeout: 4000
-    })
-    return
-  }
-
-  loadingPlanilha.value = true
-  
-  try {
-    await enviarCsv(planilhaFile.value)
-    
-    showToast({
-      message: 'Planilha enviada com sucesso!',
-      color: 'success',
-      icon: 'mdi-check-circle'
-    })
-    
-    planilhaFile.value = null
-    modalPlanilha.value = false
-  } catch (error) {
-    showToast({
-      message: 'Erro ao enviar planilha. Tente novamente.',
-      color: 'error',
-      timeout: 5000,
-      icon: 'mdi-alert-circle'
-    })
-  } finally {
-    loadingPlanilha.value = false
-  }
-}
-
-const enviarPDFs = async () => {
-  if (!pdfFile.value) {
-    showToast({
-      message: 'Selecione um arquivo PDF.',
-      color: 'warning',
-      timeout: 4000
-    })
-    return
-  }
-
-  loadingPDF.value = true
-  
-  try {
-    await fetch("http://localhost:3600/api/enviarPDFs", {
-      method: "POST",
-      body: pdfFile.value
-    })
-    
-    showToast({
-      message: 'PDF enviado com sucesso!',
-      color: 'success',
-      icon: 'mdi-check-circle'
-    })
-    
-    pdfFile.value = null
-    modalPDF.value = false
-  } catch (error) {
-    showToast({
-      message: 'Erro ao enviar PDF. Tente novamente.',
-      color: 'error',
-      timeout: 5000,
-      icon: 'mdi-alert-circle'
-    })
-  } finally {
-    loadingPDF.value = false
-  }
+const handleImageUpload = (event) => {
+  showToast({
+    message: 'Upload de imagem em desenvolvimento',
+    color: 'info'
+  })
 }
 
 const abrirDetalhe = (id) => {
@@ -672,69 +786,62 @@ const formarData = (data) => {
   if (!data) return 'Data não disponível'
   return new Date(data).toLocaleDateString('pt-BR', {
     day: '2-digit',
-    month: '2-digit',
+    month: 'short',
     year: 'numeric'
-  })
+  }).replace('.', '')
 }
 </script>
 
 <style scoped>
-.card-noticia {
-  transition: transform 0.3s ease;
+.action-card {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-color: rgba(0, 0, 0, 0.12);
 }
 
-.card-noticia:hover {
-  transform: translateY(-5px);
+.action-card:hover {
+  border-color: var(--v-primary-base);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
+.post-card {
+  transition: all 0.2s ease;
+  border-color: rgba(0, 0, 0, 0.08);
 }
 
-.chip {
-  font-weight: bold;
+.post-card:hover {
+  border-color: rgba(0, 0, 0, 0.16);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
-.reading-time {
-  font-size: 0.875rem;
-  color: #666;
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
-.titulo-noticia {
-  font-size: 1.25rem;
-  font-weight: bold;
-  margin-bottom: 0.75rem;
-  color: #333;
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
-.meta-info {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-  font-size: 0.875rem;
-  color: #666;
+.image-upload-area {
+  background: linear-gradient(135deg, #f5f5f5 25%, #e0e0e0 25%, #e0e0e0 50%, #f5f5f5 50%, #f5f5f5 75%, #e0e0e0 75%, #e0e0e0);
+  background-size: 20px 20px;
+  cursor: pointer;
+  border-radius: 8px;
+  margin: 16px;
 }
 
-.divider {
-  color: #999;
+.image-upload-area:hover {
+  background-color: #f0f0f0;
 }
 
-.descricao {
-  color: #555;
-  line-height: 1.6;
-  margin-bottom: 1.5rem;
-}
-
-.read-more-btn {
-  border-color: #db0e35;
-  color: #db0e35;
-}
-
-.read-more-btn:hover {
-  background-color: rgba(219, 14, 53, 0.1);
+.gap-2 {
+  gap: 8px;
 }
 </style>
