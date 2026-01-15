@@ -474,27 +474,102 @@
           </v-card-text>
         </v-card>
       </v-dialog>
+      <v-col cols="12">
+
+  <div class="d-flex align-center justify-space-between mb-4">
+    <h2 class="text-h5 font-weight-bold">🎉 Aniversariantes do Mês</h2>
+    <v-chip 
+      color="error" 
+      variant="outlined"
+      size="small"
+      prepend-icon="mdi-cake-variant"
+    >
+      {{ listAniversariantes.length }} {{ listAniversariantes.length === 1 ? 'aniversariante' : 'aniversariantes' }}
+    </v-chip>
+  </div>
+  
+  <v-list lines="three" class="aniversariantes-list">
+  <v-list-item
+    v-for="(colaborador, index) in paginatedItems"
+    :key="index"
+    :title="colaborador.nome"
+    :subtitle="formatarDataAniversario(colaborador.dataAniversario)"
+  >
+    <template v-slot:append>
+      <v-icon
+        size="20"
+        color="red-700"
+        class="mr-2"
+        @click="editarColaborador(colaborador)"
+      >
+        mdi-pencil
+      </v-icon>
+      <v-icon
+        size="20"
+        color="error"
+        @click="excluirColaborador(colaborador)"
+      >
+        mdi-delete
+      </v-icon>
+    </template>
+
+    <span>
+      {{ colaborador.mensagem }}
+    </span>
+  </v-list-item>
+
+  </v-list>
+
+    <v-pagination
+      v-model="page"
+      :length="pageCount"
+      :total-visible="7"
+    ></v-pagination>
+
+    </v-col>
     </v-container>
   </v-main>
 </template>
 
 <script setup>
-import { ref, onMounted, reactive } from 'vue'
+import { ref, onMounted, reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { enviarPost, carregarPosts, atualizarPost, excluirPost, enviarAniversariante } from '../services/blogServices'
+import { enviarPost, carregarPosts, atualizarPost, excluirPost, enviarAniversariante, getAniversariantes } from '../services/blogServices'
 import flyer from "../assets/flyer.jpg"
 
 const router = useRouter()
+
+const page = ref(1)
+const itemsPerPage = ref(5)
+const listAniversariantes = ref([])
+const noticias = ref([])
+
+const pageCount = computed(() => Math.ceil(listAniversariantes.value.length / itemsPerPage.value))
+const paginatedItems = computed(() => {
+  const start = (page.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return listAniversariantes.value.slice(start, end)
+})
+
 const modalPost = ref(false)
 const modalAniversariante = ref(false)
 const modoEdicao = ref(false)
 const postIdEdicao = ref(null)
+
 const loadingSalvar = ref(false)
 const loadingAniversariante = ref(false)
 const loadingExclusao = ref(null)
-const noticias = ref([])
 
 const menuDataAniversario = ref(false)
+
+const form = ref({
+  titulo: '',
+  descricao: '',
+  categoria: '',
+  tempoLeitura: '',
+  autor: ''
+})
+
 const formAniversariante = ref({
   nome: '',
   dataAniversario: '',
@@ -507,14 +582,6 @@ const snackbar = reactive({
   color: 'success',
   timeout: 4000,
   icon: null
-})
-
-const form = ref({
-  titulo: '',
-  descricao: '',
-  categoria: '',
-  tempoLeitura: '',
-  autor: ''
 })
 
 const showToast = (options) => {
@@ -548,16 +615,23 @@ const carregarNoticias = async () => {
     const response = await carregarPosts()
     noticias.value = response.data.data || response.data
   } catch (error) {
-    console.error("Erro ao carregar posts:", error)
-    showToast({
-      message: 'Erro ao carregar posts.',
-      color: 'error'
-    })
+    showToast({ message: 'Erro ao carregar posts.', color: 'error' })
+  }
+}
+
+const carregarListAniversariantes = async () => {
+  try {
+    const response = await getAniversariantes()
+    listAniversariantes.value = response.data.data || response.data
+  } catch (error) {
+    showToast({ message: 'Erro ao carregar aniversariantes.', color: 'error' })
   }
 }
 
 onMounted(() => {
   carregarNoticias()
+  carregarListAniversariantes()
+
 })
 
 const getCategoriaColor = (categoria) => {
@@ -570,47 +644,27 @@ const getCategoriaColor = (categoria) => {
   return colors[categoria] || '#757575'
 }
 
-
 const salvarPost = async () => {
   if (!form.value.titulo || !form.value.categoria || !form.value.descricao || !form.value.tempoLeitura || !form.value.autor) {
-    showToast({
-      message: 'Preencha todos os campos obrigatórios.',
-      color: 'warning',
-      icon: 'mdi-alert'
-    })
+    showToast({ message: 'Preencha todos os campos obrigatórios.', color: 'warning', icon: 'mdi-alert' })
     return
   }
-
   loadingSalvar.value = true
-  
   try {
     if (modoEdicao.value) {
       await atualizarPost(postIdEdicao.value, form.value)
       noticias.value = noticias.value.map(noticia =>
         noticia.id === postIdEdicao.value ? { ...noticia, ...form.value } : noticia
       )
-      
-      showToast({
-        message: 'Post atualizado com sucesso!',
-        color: 'success'
-      })
+      showToast({ message: 'Post atualizado com sucesso!', color: 'success' })
     } else {
       await enviarPost(form.value)
       await carregarNoticias()
-      
-      showToast({
-        message: 'Post criado com sucesso!',
-        color: 'success'
-      })
+      showToast({ message: 'Post criado com sucesso!', color: 'success' })
     }
-    
     fecharModal()
-  } catch (error) {
-    console.error('Erro ao salvar post:', error)
-    showToast({
-      message: 'Erro ao salvar post. Tente novamente.',
-      color: 'error'
-    })
+  } catch {
+    showToast({ message: 'Erro ao salvar post. Tente novamente.', color: 'error' })
   } finally {
     loadingSalvar.value = false
   }
@@ -628,116 +682,55 @@ const fecharModalAniversariante = () => {
 
 const salvarAniversariante = async () => {
   const { nome, dataAniversario, mensagem } = formAniversariante.value
-  
-  if (!nome || !dataAniversario || !mensagem) {
-    showToast({
-      message: 'Preencha todos os campos obrigatórios.',
-      color: 'warning',
-      icon: 'mdi-alert'
-    })
+  if (!nome || !dataAniversario || !mensagem || nome.trim() === '' || mensagem.trim() === '') {
+    showToast({ message: 'Preencha todos os campos corretamente.', color: 'warning', icon: 'mdi-alert' })
     return
   }
-
-  if (nome.trim() === '' || mensagem.trim() === '') {
-    showToast({
-      message: 'Preencha todos os campos corretamente.',
-      color: 'warning',
-      icon: 'mdi-alert'
-    })
-    return
-  }
-
   loadingAniversariante.value = true
-  
   try {
-    let dataFormatada;
-    
+    let dataFormatada
     if (typeof dataAniversario === 'string') {
-      dataFormatada = dataAniversario;
+      dataFormatada = dataAniversario
     } else if (dataAniversario instanceof Date) {
-      dataFormatada = dataAniversario.toISOString().split('T')[0];
+      dataFormatada = dataAniversario.toISOString().split('T')[0]
     } else {
-
-      const data = new Date(dataAniversario);
-      if (isNaN(data.getTime())) {
-        throw new Error('Data inválida');
-      }
-      dataFormatada = data.toISOString().split('T')[0];
+      const data = new Date(dataAniversario)
+      if (isNaN(data.getTime())) throw new Error('Data inválida')
+      dataFormatada = data.toISOString().split('T')[0]
     }
-
-    console.log('Data formatada para envio:', dataFormatada); 
-    
     const response = await enviarAniversariante({
       nome: nome.trim(),
       dataAniversario: dataFormatada,
       mensagem: mensagem.trim()
     })
-
-    const data = response.data;
-
+    const data = response.data
     if (data.status === 'error') {
-      showToast({
-        message: data.message || 'Erro ao salvar aniversariante. Tente novamente.',
-        color: 'error',
-        icon: 'mdi-alert-circle'
-      })
+      showToast({ message: data.message || 'Erro ao salvar aniversariante.', color: 'error', icon: 'mdi-alert-circle' })
       return
     }
-
-    showToast({
-      message: data.message || 'Aniversariante salvo com sucesso!',
-      color: 'success',
-      icon: 'mdi-check-circle'
-    })
-    
+    showToast({ message: data.message || 'Aniversariante salvo com sucesso!', color: 'success', icon: 'mdi-check-circle' })
     fecharModalAniversariante()
-    
   } catch (error) {
-    console.error('Erro ao salvar aniversariante:', error)
-    
     let userMessage = 'Erro ao salvar aniversariante. Tente novamente.'
-    
-    if (error.message.includes('Network') || error.message.includes('Failed to fetch')) {
-      userMessage = 'Erro de conexão. Verifique sua internet e tente novamente.'
-    } else if (error.message.includes('401') || error.message.includes('403')) {
-      userMessage = 'Acesso não autorizado. Faça login novamente.'
-    } else if (error.message.includes('Data inválida')) {
-      userMessage = 'Data de aniversário inválida. Selecione uma data válida.'
-    } else {
-      userMessage = error.message
-    }
-    
-    showToast({
-      message: userMessage,
-      color: 'error',
-      icon: 'mdi-alert-circle',
-      timeout: 5000
-    })
+    if (error.message.includes('Network') || error.message.includes('Failed to fetch')) userMessage = 'Erro de conexão.'
+    else if (error.message.includes('401') || error.message.includes('403')) userMessage = 'Acesso não autorizado.'
+    else if (error.message.includes('Data inválida')) userMessage = 'Data de aniversário inválida.'
+    else userMessage = error.message
+    showToast({ message: userMessage, color: 'error', icon: 'mdi-alert-circle', timeout: 5000 })
   } finally {
     loadingAniversariante.value = false
   }
 }
-const excluirPublic = async (id) => {
-  if (!confirm('Tem certeza que deseja excluir este post?\nEsta ação não pode ser desfeita.')) {
-    return
-  }
 
+const excluirPublic = async (id) => {
+  if (!confirm('Tem certeza que deseja excluir este post?\nEsta ação não pode ser desfeita.')) return
   loadingExclusao.value = id
-  
   try {
     await excluirPost(id)
     noticias.value = noticias.value.filter(noticia => noticia.id !== id)
-    
-    showToast({
-      message: 'Post excluído com sucesso!',
-      color: 'success'
-    })
-  } catch (error) {
-    console.error('Erro ao excluir post:', error)
-    showToast({
-      message: 'Erro ao excluir post. Tente novamente.',
-      color: 'error'
-    })
+    showToast({ message: 'Post excluído com sucesso!', color: 'success' })
+  } catch {
+    showToast({ message: 'Erro ao excluir post. Tente novamente.', color: 'error' })
   } finally {
     loadingExclusao.value = null
   }
@@ -751,7 +744,6 @@ const editarPost = (noticia) => {
     tempoLeitura: noticia.tempoLeitura,
     autor: noticia.autor
   }
-
   postIdEdicao.value = noticia.id
   modoEdicao.value = true
   modalPost.value = true
@@ -771,11 +763,8 @@ const fecharModal = () => {
   postIdEdicao.value = null
 }
 
-const handleImageUpload = (event) => {
-  showToast({
-    message: 'Upload de imagem em desenvolvimento',
-    color: 'info'
-  })
+const handleImageUpload = () => {
+  showToast({ message: 'Upload de imagem em desenvolvimento', color: 'info' })
 }
 
 const abrirDetalhe = (id) => {
@@ -784,11 +773,12 @@ const abrirDetalhe = (id) => {
 
 const formarData = (data) => {
   if (!data) return 'Data não disponível'
-  return new Date(data).toLocaleDateString('pt-BR', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric'
-  }).replace('.', '')
+  return new Date(data).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }).replace('.', '')
+}
+
+const formatarDataAniversario = (data) => {
+  if (!data) return 'Data não informada'
+  return new Date(data).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' })
 }
 </script>
 
@@ -843,5 +833,152 @@ const formarData = (data) => {
 
 .gap-2 {
   gap: 8px;
+}
+
+
+.action-card {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-color: rgba(0, 0, 0, 0.12);
+}
+
+.action-card:hover {
+  border-color: var(--v-primary-base);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.post-card {
+  transition: all 0.2s ease;
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+.post-card:hover {
+  border-color: rgba(0, 0, 0, 0.16);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.image-upload-area {
+  background: linear-gradient(135deg, #f5f5f5 25%, #e0e0e0 25%, #e0e0e0 50%, #f5f5f5 50%, #f5f5f5 75%, #e0e0e0 75%, #e0e0e0);
+  background-size: 20px 20px;
+  cursor: pointer;
+  border-radius: 8px;
+  margin: 16px;
+}
+
+.image-upload-area:hover {
+  background-color: #f0f0f0;
+}
+
+.gap-2 {
+  gap: 8px;
+}
+
+.aniversariantes-list {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+}
+
+.aniversariantes-list .v-list-item {
+  padding: 16px 20px;
+  transition: all 0.2s ease;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.aniversariantes-list .v-list-item:last-child {
+  border-bottom: none;
+}
+
+.aniversariantes-list .v-list-item:hover {
+  background-color: rgba(25, 118, 210, 0.04);
+}
+
+.aniversariantes-list .v-list-item-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1a237e;
+  margin-bottom: 4px;
+}
+
+.aniversariantes-list .v-list-item-subtitle {
+  font-size: 0.75rem;
+  color: #db0e35 !important;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.aniversariantes-list .v-list-item-subtitle::before {
+  content: "🎂";
+  font-size: 0.875rem;
+}
+
+.aniversariantes-list .v-list-item__content {
+  padding: 0;
+}
+
+.aniversariantes-list span {
+  font-size: 0.875rem;
+  color: #424242;
+  line-height: 1.5;
+  display: block;
+  margin-top: 8px;
+  padding-left: 20px;
+  position: relative;
+}
+
+.aniversariantes-list span::before {
+  content: "💬";
+  position: absolute;
+  left: 0;
+  top: 2px;
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+/* Header da lista */
+.aniversariantes-list::before {
+
+  display: block;
+  padding: 20px 20px 16px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1a237e;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  background: linear-gradient(135deg, rgba(219, 14, 53, 0.05) 0%, rgba(25, 118, 210, 0.05) 100%);
+}
+
+/* Responsividade */
+@media (max-width: 600px) {
+  .aniversariantes-list .v-list-item {
+    padding: 14px 16px;
+  }
+  
+  .aniversariantes-list::before {
+    padding: 16px 16px 12px;
+    font-size: 1.125rem;
+  }
+  
+  .aniversariantes-list span {
+    padding-left: 18px;
+  }
 }
 </style>
