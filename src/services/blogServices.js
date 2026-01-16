@@ -27,3 +27,12 @@ export const enviarAniversariante = async (data) => {
 export const getAniversariantes = async () => {
   return await carregarDados.get('/listarAniversariante');
 }
+
+
+export const atualizarAniversariante = async (id, data) => {
+  return await atualizarPublic.put(`/atualizarAniversariante/${id}`, data);
+}
+
+export const excluirAniversariante = async (id) => {
+  return await excluirPublicacao.delete(`/deletarAniversariante/${id}`);
+}
